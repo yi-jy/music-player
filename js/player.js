@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 (function(){	
 	//播放器主体 
+=======
+﻿﻿(function(){
+	//播放器主体
+>>>>>>> gh-pages
 	var audio = document.createElement("audio"),
 		songPic=$("song-pic"),
 		songDes=$("song-des"),
