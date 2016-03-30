@@ -50,9 +50,9 @@ html,body{width:100%;height:100%;overflow:hidden;color:#fff;font:12px/20px "Helv
 .cur-song-stop .list-song-tracks{background:url(../images/listen-stop.gif) center center no-repeat;}
 .cur-song .tracks-val,.cur-song-stop .tracks-val{font-size:0;}
 .list-bd{height:162px;overflow-y:auto;}
-.list-bd .hoverLi{color:#fff;background:#99c;}
 .list-bd li{background:#fff;}
 .list-bd .bg-song{background:#efefef;}
+.list-bd .hoverLi{color:#fff;background:#99c;}
 
 /***歌词***/
 .lrc{position: absolute;left:0;bottom:150px;width:100%;text-align:center;z-index:10;}

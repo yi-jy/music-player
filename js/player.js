@@ -1,21 +1,22 @@
 ﻿﻿(function(){
 	//播放器主体
-	var audio = document.createElement("audio"),
-		songPic=$("song-pic"),
-		songDes=$("song-des"),
-		songName=songDes.getElementsByTagName("h2")[0],
-		songer=songDes.getElementsByTagName("span")[0],
-		album=songDes.getElementsByTagName("span")[1],
-		prev=$("prev"),
-		next=$("next"),
-		action=$("action"),
-		proBar=$("progress-bar"),
-		proIcon=$("progress-icon"),
-		iW=proBar.offsetWidth-proIcon.offsetWidth,
-		proVal=$("progress-val"),
-		time=$("time"),
-		curTimeSpan=time.getElementsByTagName("span")[0],
-		totalTimeSpan=time.getElementsByTagName("span")[1],
+	var audio = document.createElement("audio");
+
+	// 歌曲信息
+	var songPic = $("song-pic"),
+		songDes = $("song-des"),
+		songName = songDes.getElementsByTagName("h2")[0],
+		songer = songDes.getElementsByTagName("span")[0],
+		album = songDes.getElementsByTagName("span")[1];
+
+	// 播放进度与时间
+	var proBar = $("progress-bar"),
+		proIcon = $("progress-icon"),
+		iW = proBar.offsetWidth-proIcon.offsetWidth,
+		proVal = $("progress-val"),
+		time = $("time"),
+		curTimeSpan = time.getElementsByTagName("span")[0],
+		totalTimeSpan = time.getElementsByTagName("span")[1],
 		i=curTimeMin=curTimeSec=allTimeMin=allTimeSec=curTime=allTime=scale=0,
 		barTimer=playTimer=modeTimer=moveTimer=null;
 
@@ -32,11 +33,14 @@
 		songUl=listBd.getElementsByTagName("ul")[0],
 		aLi=null;
 
-	// 播放模式键
-	var singleMode=$("single-mode"),
-		randomMode=$("random-mode"),
-		listMode=$("list-mode"),
-		iSingle=iRandom=false;  // 默认列表循环
+	// 播放与模式键
+	var playPrev = $("play-prev"),
+		playNext = $("play-next"),
+		playStatus = $("play-status"),
+		singleMode = $("single-mode"),
+		randomMode = $("random-mode"),
+		listMode = $("list-mode"),
+		iSingle = iRandom = false;  // 默认列表循环
 
 	// 歌词格式规则
 	var lrcBox=$("lrc-box"),
@@ -51,51 +55,108 @@
 		lrcTime=[],   // 最后时间数组 存在着对象引用
 		lrcWord=[];  //  最后歌词数组
 
-	// 播放元素与歌曲数组
-	var arr=[ ["nndj","难念的经","周华健","天龙八部主题曲"],
-			 ["wcyxazn","我曾用心爱着你","葛泓语","中国好声音第二季"],
-			 ["fk","浮夸","陈奕迅","U87"],
-			 ["ywaq","因为爱情","陈奕迅/王菲","因为爱情"],
-			 ["sjdqnl","时间都去哪了","王铮亮","2014春晚"],
-			 ["axdyj","爱笑的眼睛","徐若瑄","狠狠爱"],
-			 ["yayng","越爱越难过","吴克羣","为你写诗"],
-			 ["gyy","过雨云","张敬轩","过云雨"],
-			 ["ts","她说","林俊杰","她说"],
-			 ["allmylife","All My Life","Shayne Ward","All My Life"]];
+	// 可播放歌曲
+	var songData = {
+		total: 10,
+		info: [
+			{
+				brief: 'nndj',
+				name: '难念的经',
+				songer: '周华健',
+				album: '天龙八部主题曲'
+			},
+			{
+				brief: 'wcyxazn',
+				name: '我曾用心爱着你',
+				songer: '葛泓语',
+				album: '中国好声音第二季'
+			},
+			{
+				brief: 'fk',
+				name: '浮夸',
+				songer: '陈奕迅',
+				album: 'U87'
+			},
+			{
+				brief: 'ywaq',
+				name: '因为爱情',
+				songer: '陈奕迅/王菲',
+				album: '因为爱情'
+			},
+			{
+				brief: 'sjdqnl',
+				name: '时间都去哪了',
+				songer: '王铮亮',
+				album: '2014春晚'
+			},
+			{
+				brief: 'axdyj',
+				name: '爱笑的眼睛',
+				songer: '徐若瑄',
+				album: '狠狠爱'
+			},
+			{
+				brief: 'yayng',
+				name: '越爱越难过',
+				songer: '吴克羣',
+				album: '为你写诗'
+			},
+			{
+				brief: 'gyy',
+				name: '过雨云',
+				songer: '张敬轩',
+				album: '过云雨'
+			},
+			{
+				brief: 'ts',
+				name: '她说',
+				songer: '林俊杰',
+				album: '她说'
+			},
+			{
+				brief: 'allmylife',
+				name: 'All My Life',
+				songer: 'Shayne Ward',
+				album: 'All My Life'
+			}
+		]
+	}
 
 	//加载歌曲列表
 	function songList(){
-		var oFragment=document.createDocumentFragment();
-		for(var i=0;i<arr.length;i++){
-			var oLi=document.createElement("li");
-			oLi.innerHTML="<span class='list-song-tracks'><span class='tracks-val'>"+(i+1)+"</span></span><span class='list-song-name'>"+arr[i][1]+"</span><span class='list-song-songer'>"+arr[i][2]+"</span>"
+		var oFragment = document.createDocumentFragment();
+		for(var i = 0; i < songData.total; i += 1){
+			var oLi = document.createElement("li");
+			oLi.innerHTML  = '<span class="list-song-tracks">';
+			oLi.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
+			oLi.innerHTML += '</span>';
+			oLi.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
+			oLi.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
 			oFragment.appendChild(oLi);
 		}
 		songUl.appendChild(oFragment);
-		aLi=songUl.getElementsByTagName("li");
+		aLi = songUl.getElementsByTagName("li");
 	}
 
-	addEvent(action,"click",actionFn);
-	function actionFn(){
-		if(this.className=="status status-stop"){
+	// 暂停与播放
+	function songPlayStatus() {
+		if(this.className == "status status-stop"){
 			play();
-		}
-		else{
+		}else{
 			pause();
 		}
 	}
 
 	// 上一曲
-	addEvent(prev,"click",prevFn);
-	function prevFn(){
+	function prevSong(){
 		if(iRandom){
 			clearTimeout(modeTimer);
-			i=parseInt(Math.random()*arr.length);
+			i = parseInt(Math.random()*songData.total);
 		}
 		else{
 			i--;
-			if(i==-1){
-				i=arr.length-1;
+			if(i == -1){
+				i = songData.total - 1;
 			}
 		}
 		changeSong(i);
@@ -103,15 +164,14 @@
 	}
 
 	// 下一曲
-	addEvent(next,"click",nextFn);
-	function nextFn(){
+	function nextSong(){
 		if(iRandom){
 			clearTimeout(modeTimer);
-			i=parseInt(Math.random()*arr.length);
+			i = parseInt(Math.random()*songData.total);
 		}
 		else{
 			i++;
-			if(i==arr.length){
+			if(i == songData.total){
 				i=0;
 			}
 		}
@@ -119,20 +179,24 @@
 		play();
 	}
 
+	addEvent(playStatus, "click", songPlayStatus);
+	addEvent(playPrev, "click", prevSong);
+	addEvent(playNext, "click", nextSong);
+
 	//换歌
 	function changeSong(i){
-		songPic.setAttribute("src","images/"+arr[i][0]+".jpg");
-		audio.setAttribute("src","music/"+arr[i][0]+".mp3");
-		songName.innerHTML=arr[i][1];
-		songer.innerHTML=arr[i][2];
-		album.innerHTML="《"+arr[i][3]+"》";
+		songPic.setAttribute("src","images/"+ songData.info[i].brief + ".jpg");
+		audio.setAttribute("src","music/"+ songData.info[i].brief + ".mp3");
+		songName.innerHTML= songData.info[i].name;
+		songer.innerHTML= songData.info[i].songer;
+		album.innerHTML="《" + songData.info[i].album + "》";
 		proIcon.style.left=proVal.style.width=curTimeMin=curTimeSec=0; //换歌清0
 		curTimeSpan.innerHTML=totalTimeSpan.innerHTML="00:00";
 		liBg();
 		lrcUl.innerHTML="";
 
 		ajaxFn({
-			url: "lrc/"+arr[i][0]+".txt",
+			url: "lrc/" + songData.info[i].brief + ".txt",
 			callback: function(data) {
 	            getLrc(data);  //处理获取的歌词
 			    lrcShow();
@@ -146,14 +210,14 @@
 		else if(i==0){
 			move(listBd,0);
 		}
-		document.title=arr[i][1];
-		document.body.style["background-image"] = "url('images/" + arr[i][0] + ".jpg')";
+		document.title= songData.info[i].name;
+		document.body.style["background-image"] = "url('images/" + songData.info[i].brief + ".jpg')";
 	}
 
 	// 播放
 	function play(curTime){   // changeSong 与  play  合并，因为重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
 		allTime=parseInt(audio.duration);
-		action.className="status status-play";
+		playStatus.className="status status-play";
 		songPic.className="rorate-pic";
 		audio.startTime=curTime;
 		audio.play();
@@ -165,7 +229,7 @@
 
 	// 暂停播放
 	function pause(curTime){
-		action.className="status status-stop";
+		playStatus.className="status status-stop";
 		songPic.className="rorate-pic rorate-pic-stop";
 		allTime=parseInt(audio.duration);
 		curTime=audio.currentTime;
@@ -190,14 +254,14 @@
 			}
 			else if(iRandom){
 				clearTimeout(modeTimer);
-				i=parseInt(Math.random()*arr.length);
+				i=parseInt(Math.random()*songData.total);
 				changeSong(i);
 				play();
 			}
 			else{
 				modeTimer=setTimeout(function(){
 					i++;
-					if(i==arr.length){
+					if(i == songData.total){
 						i=0;
 					}
 					changeSong(i);
