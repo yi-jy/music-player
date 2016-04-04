@@ -43,17 +43,17 @@
 		iSingle = iRandom = false;  // 默认列表循环
 
 	// 歌词格式规则
-	var lrcBox=$("lrc-box"),
-		lrcUl=lrcBox.getElementsByTagName("ul")[0],
-		regClear=/\[\d{2}:\d{2}\.\d{0,2}\].+|\[\d{2}:\d{2}\.\d{0,2}\]/g,
-		regTime=/\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
-		regMatchTime=/\d{2}:\d{2}/g, // 比较时间格式
-		regWord=/[^\[\d{2}:\d{2}.\d{2}\]]/g,// 歌词正则（结果为单个字或者空白）
-		lrcLrc=oldLrc=newLrc=null,
-		oldShowLrcArr=newShowLrcArr=[],   // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
-		repeatLrcTime=repeatLrcWord=[],  // 临时数组 
-		lrcTime=[],   // 最后时间数组 存在着对象引用
-		lrcWord=[];  //  最后歌词数组
+	var lrcBox = $("lrc-box"),
+		lrcUl = lrcBox.getElementsByTagName("ul")[0],
+		regClear = /\[\d{2}:\d{2}\.\d{0,2}\].+|\[\d{2}:\d{2}\.\d{0,2}\]/g,
+		regTime = /\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
+		regMatchTime = /\d{2}:\d{2}/g, // 比较时间格式
+		regWord = /[^\[\d{2}:\d{2}.\d{2}\]]/g,// 歌词正则（结果为单个字或者空白）
+		lrcLrc = oldLrc = newLrc = null,
+		oldShowLrcArr = newShowLrcArr = [],   // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
+		repeatLrcTime = repeatLrcWord = [],  // 临时数组 
+		lrcTime = [],   // 最后时间数组 存在着对象引用
+		lrcWord = [];  //  最后歌词数组
 
 	// 可播放歌曲
 	var songData = {
@@ -122,66 +122,116 @@
 		]
 	}
 
-	//加载歌曲列表
-	function songList(){
-		var oFragment = document.createDocumentFragment();
-		for(var i = 0; i < songData.total; i += 1){
-			var oLi = document.createElement("li");
-			oLi.innerHTML  = '<span class="list-song-tracks">';
-			oLi.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
-			oLi.innerHTML += '</span>';
-			oLi.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
-			oLi.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
-			oFragment.appendChild(oLi);
-		}
-		songUl.appendChild(oFragment);
-		aLi = songUl.getElementsByTagName("li");
-	}
-
-	// 暂停与播放
-	function songPlayStatus() {
-		if(this.className == "status status-stop"){
-			play();
-		}else{
-			pause();
+	var song = {
+		list: function() { // 加载歌曲列表
+			var oFragment = document.createDocumentFragment();
+			for(var i = 0; i < songData.total; i += 1){
+				var oLi = document.createElement("li");
+				oLi.innerHTML  = '<span class="list-song-tracks">';
+				oLi.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
+				oLi.innerHTML += '</span>';
+				oLi.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
+				oLi.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
+				oFragment.appendChild(oLi);
+			}
+			songUl.appendChild(oFragment);
+			aLi = songUl.getElementsByTagName("li");
 		}
 	}
 
-	// 上一曲
-	function prevSong(){
-		if(iRandom){
-			clearTimeout(modeTimer);
-			i = parseInt(Math.random()*songData.total);
-		}
-		else{
-			i--;
-			if(i == -1){
-				i = songData.total - 1;
+	var play = {
+		status: function() { // 暂停或播放
+			if(playStatus.className == "status status-stop"){
+				play.continue();
+			}else{
+				play.pause();
+			}
+		},
+		prev: function() { // 上一曲
+			if(iRandom){
+				clearTimeout(modeTimer);
+				i = parseInt(Math.random()*songData.total);
+			}
+			else{
+				i--;
+				if(i == -1){
+					i = songData.total - 1;
+				}
+			}
+			changeSong(i);
+			play.continue();
+		},
+		next: function() { // 下一曲
+			if(iRandom){
+				clearTimeout(modeTimer);
+				i = parseInt(Math.random()*songData.total);
+			}
+			else{
+				i++;
+				if(i == songData.total){
+					i = 0;
+				}
+			}
+			changeSong(i);
+			play.continue();
+		},
+		pause: function(curTime) { // 暂停播放
+			playStatus.className = "status status-stop";
+			songPic.className = "rorate-pic rorate-pic-stop";
+			allTime = parseInt(audio.duration);
+			curTime = audio.currentTime;
+			audio.pause();
+			clearInterval(barTimer);
+			removeClassN(aLi[i], "cur-song");
+			addClassN(aLi[i], "cur-song-stop");
+		},
+		continue: function(curTime) { // 重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
+			allTime = parseInt(audio.duration);
+			playStatus.className = "status status-play";
+			songPic.className = "rorate-pic";
+			audio.startTime = curTime;
+			audio.play();
+			clearInterval(barTimer);
+			barTimer = setInterval(progress, 100);
+			removeClassN(aLi[i], "cur-song-stop");
+			addClassN(aLi[i],"cur-song");
+		},
+		mode: {
+			list: function() {
+				iSingle = iRandom = false;
+				addClassN(listMode, "cur-mode");
+				removeClassN(singleMode, "cur-mode");
+				removeClassN(randomMode, "cur-mode");
+				audio.removeAttribute("loop");
+			},
+			random: function() {
+				iSingle = false;
+				iRandom = true;
+				addClassN(randomMode, "cur-mode");
+				removeClassN(singleMode, "cur-mode");
+				removeClassN(listMode, "cur-mode");
+				audio.removeAttribute("loop");
+			},
+			single: function() {
+				iSingle = true;
+				iRandom = false;
+				addClassN(singleMode, "cur-mode");
+				removeClassN(randomMode, "cur-mode");
+				removeClassN(listMode, "cur-mode");
+				audio.setAttribute("loop", "loop");
 			}
 		}
-		changeSong(i);
-		play();
 	}
 
-	// 下一曲
-	function nextSong(){
-		if(iRandom){
-			clearTimeout(modeTimer);
-			i = parseInt(Math.random()*songData.total);
-		}
-		else{
-			i++;
-			if(i == songData.total){
-				i=0;
-			}
-		}
-		changeSong(i);
-		play();
-	}
+	// 播放、暂停，上一曲、下一曲
+	addEvent(playStatus, "click", play.status);
+	addEvent(playPrev, "click", play.prev);
+	addEvent(playNext, "click", play.next);
 
-	addEvent(playStatus, "click", songPlayStatus);
-	addEvent(playPrev, "click", prevSong);
-	addEvent(playNext, "click", nextSong);
+	// 播放模式
+	addEvent(listMode, "click", play.mode.list);
+	addEvent(randomMode, "click", play.mode.random);
+	addEvent(singleMode, "click", play.mode.single);
 
 	//换歌
 	function changeSong(i){
@@ -214,31 +264,6 @@
 		document.body.style["background-image"] = "url('images/" + songData.info[i].brief + ".jpg')";
 	}
 
-	// 播放
-	function play(curTime){   // changeSong 与  play  合并，因为重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
-		allTime=parseInt(audio.duration);
-		playStatus.className="status status-play";
-		songPic.className="rorate-pic";
-		audio.startTime=curTime;
-		audio.play();
-		clearInterval(barTimer);
-		barTimer=setInterval(progress,100);
-		removeClassN(aLi[i],"cur-song-stop");
-		addClassN(aLi[i],"cur-song");
-	}
-
-	// 暂停播放
-	function pause(curTime){
-		playStatus.className="status status-stop";
-		songPic.className="rorate-pic rorate-pic-stop";
-		allTime=parseInt(audio.duration);
-		curTime=audio.currentTime;
-		audio.pause();
-		clearInterval(barTimer);
-		removeClassN(aLi[i],"cur-song");
-		addClassN(aLi[i],"cur-song-stop");
- 	}
-
 	// 进度条和时间
 	function progress(){
 		allTime=parseInt(audio.duration);
@@ -250,13 +275,13 @@
 			clearInterval(barTimer);
 			if(iSingle){
 				clearTimeout(modeTimer);
-				play();
+				play.continue();
 			}
 			else if(iRandom){
 				clearTimeout(modeTimer);
 				i=parseInt(Math.random()*songData.total);
 				changeSong(i);
-				play();
+				play.continue();
 			}
 			else{
 				modeTimer=setTimeout(function(){
@@ -265,7 +290,7 @@
 						i=0;
 					}
 					changeSong(i);
-					play();
+					play.continue();
 				},1000)
 			}
 		}
@@ -328,7 +353,7 @@
 
 				if(option=="progress"){
 					curTime=audio.currentTime=scale*allTime;
-					play(curTime);
+					play.continue(curTime);
 				}
 			}
 			return false;
@@ -377,38 +402,9 @@
 				clearTimeout(playTimer);
 				playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
 					changeSong(i);
-					play();
+					play.continue();
 				},500);
 			}
-		}
-	}
-
-	function playMode(){
-		addEvent(singleMode,"click",singleFn);
-		addEvent(randomMode,"click",randomFn);
-		addEvent(listMode,"click",listFn);
-		function singleFn(){
-			iSingle=true;
-			iRandom=false;
-			addClassN(singleMode,"cur-mode");
-			removeClassN(randomMode,"cur-mode");
-			removeClassN(listMode,"cur-mode");
-			audio.setAttribute("loop","loop");
-		}
-		function randomFn(){
-			iSingle=false;
-			iRandom=true;
-			addClassN(randomMode,"cur-mode");
-			removeClassN(singleMode,"cur-mode");
-			removeClassN(listMode,"cur-mode");
-			audio.removeAttribute("loop");
-		}
-		function listFn(){
-			iSingle=iRandom=false;
-			addClassN(listMode,"cur-mode");
-			removeClassN(singleMode,"cur-mode");
-			removeClassN(randomMode,"cur-mode");
-			audio.removeAttribute("loop");
 		}
 	}
 
@@ -543,12 +539,11 @@
 	}
 
 	// 初始化
-	songList();
+	song.list();
 	changeSong(0);
 	drag(proIcon,proBar,proVal,"progress");
 	drag(volumeControl,volumeBar,volumeVal,"volume");
 	actionLi();
-	playMode();
 
 })()
 //  1 歌曲时间
