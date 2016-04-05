@@ -27,11 +27,11 @@
 		volumeIcon02=$("volume-icon02");
 
 	// 歌曲列表
-	var listBtn=$("list-btn"),
-		songBox=$("song-box"),
-		listBd=$("list-bd"),
-		songUl=listBd.getElementsByTagName("ul")[0],
-		aLi=null;
+	var listBtn = $("list-btn"),
+		songBox = $("song-box"),
+		listBd = $("list-bd"),
+		songUl = listBd.getElementsByTagName("ul")[0],
+		songItem = null;
 
 	// 播放与模式键
 	var playPrev = $("play-prev"),
@@ -135,7 +135,7 @@
 				oFragment.appendChild(oLi);
 			}
 			songUl.appendChild(oFragment);
-			aLi = songUl.getElementsByTagName("li");
+			songItem = songUl.getElementsByTagName("li");
 		}
 	}
 
@@ -182,8 +182,8 @@
 			curTime = audio.currentTime;
 			audio.pause();
 			clearInterval(barTimer);
-			removeClassN(aLi[i], "cur-song");
-			addClassN(aLi[i], "cur-song-stop");
+			removeClassN(songItem[i], "cur-song");
+			addClassN(songItem[i], "cur-song-stop");
 		},
 		continue: function(curTime) { // 重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
 			allTime = parseInt(audio.duration);
@@ -193,8 +193,8 @@
 			audio.play();
 			clearInterval(barTimer);
 			barTimer = setInterval(progress, 100);
-			removeClassN(aLi[i], "cur-song-stop");
-			addClassN(aLi[i],"cur-song");
+			removeClassN(songItem[i], "cur-song-stop");
+			addClassN(songItem[i],"cur-song");
 		},
 		mode: {
 			list: function() {
@@ -255,7 +255,7 @@
 		});
 
 		if(i>4){
-			move(listBd,aLi[i].offsetTop-150);
+			move(listBd,songItem[i].offsetTop-150);
 		}
 		else if(i==0){
 			move(listBd,0);
@@ -378,26 +378,26 @@
 	}
 
 	function liBg(){
-		for(var a=0;a<aLi.length;a++){
+		for(var a=0;a<songItem.length;a++){
 			if(a%2!=0){
-				aLi[a].className="bg-song";
+				songItem[a].className="bg-song";
 			}
 			else{
-				aLi[a].removeAttribute("class");
+				songItem[a].removeAttribute("class");
 			}
 		}
 	}
 
 	function actionLi(){
-		for(var a=0;a<aLi.length;a++){
-			aLi[a].onmouseover=function(){
+		for(var a=0;a<songItem.length;a++){
+			songItem[a].onmouseover=function(){
 				addClassN(this,"hoverLi");
 			}
-			aLi[a].onmouseout=function(){
+			songItem[a].onmouseout=function(){
 				removeClassN(this,"hoverLi");
 			}
-			aLi[a].index=a;
-			aLi[a].onclick=function(){
+			songItem[a].index=a;
+			songItem[a].onclick=function(){
 				i=this.index;
 				clearTimeout(playTimer);
 				playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
