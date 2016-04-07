@@ -157,13 +157,13 @@
 					i=this.index;
 					clearTimeout(playTimer);
 					playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
-						changeSong(i);
+						song.change(i);
 						play.continue();
 					},500);
 				}
 			}
 		},
-		listSlide: function() {
+		listSlide: function() { // 歌曲列表切换
 			if(listBtn.className == "abs list-btn unfold-list"){
 				listAction(listBtn, "abs list-btn fold-list", "<", "关闭歌曲列表", "abs song-box song-box-fold");
 			}
@@ -176,6 +176,41 @@
 				obj.setAttribute("title", btnTitle);
 				songBox.className = songBoxClass;
 			}
+		},
+		change: function(i) {  // 切歌
+			songPic.setAttribute("src","images/"+ songData.info[i].brief + ".jpg");
+			audio.setAttribute("src","music/"+ songData.info[i].brief + ".mp3");
+			songName.innerHTML= songData.info[i].name;
+			songer.innerHTML= songData.info[i].songer;
+			album.innerHTML="《" + songData.info[i].album + "》";
+			proIcon.style.left=proVal.style.width=curTimeMin=curTimeSec=0; //换歌清0
+			curTimeSpan.innerHTML=totalTimeSpan.innerHTML="00:00";
+
+			lrcUl.innerHTML="";
+
+			for(var a = 0; a < songItem.length; a += 1){
+				removeClassN(songItem[a], "cur-song");
+			}
+
+			addClassN(songItem[i],"cur-song");
+
+			ajaxFn({
+				url: "lrc/" + songData.info[i].brief + ".txt",
+				callback: function(data) {
+		            getLrc(data);  //处理获取的歌词
+				    lrcShow();
+					lrcScroll();
+		        }
+			});
+
+			if(i>4){
+				move(listBd,songItem[i].offsetTop-150);
+			}
+			else if(i==0){
+				move(listBd,0);
+			}
+			document.title= songData.info[i].name;
+			document.body.style["background-image"] = "url('images/" + songData.info[i].brief + ".jpg')";
 		}
 	}
 
@@ -198,7 +233,7 @@
 					i = songData.total - 1;
 				}
 			}
-			changeSong(i);
+			song.change(i);
 			play.continue();
 		},
 		next: function() { // 下一曲
@@ -212,7 +247,7 @@
 					i = 0;
 				}
 			}
-			changeSong(i);
+			song.change(i);
 			play.continue();
 		},
 		pause: function(curTime) { // 暂停播放
@@ -273,46 +308,6 @@
 	addEvent(randomMode, "click", play.mode.random);
 	addEvent(singleMode, "click", play.mode.single);
 
-	//换歌
-	function changeSong(i){
-		songPic.setAttribute("src","images/"+ songData.info[i].brief + ".jpg");
-		audio.setAttribute("src","music/"+ songData.info[i].brief + ".mp3");
-		songName.innerHTML= songData.info[i].name;
-		songer.innerHTML= songData.info[i].songer;
-		album.innerHTML="《" + songData.info[i].album + "》";
-		proIcon.style.left=proVal.style.width=curTimeMin=curTimeSec=0; //换歌清0
-		curTimeSpan.innerHTML=totalTimeSpan.innerHTML="00:00";
-
-		for(var a=0;a<songItem.length;a++){
-			if(a%2!=0){
-				songItem[a].className="bg-song";
-			}
-			else{
-				songItem[a].removeAttribute("class");
-			}
-		}
-
-		lrcUl.innerHTML="";
-
-		ajaxFn({
-			url: "lrc/" + songData.info[i].brief + ".txt",
-			callback: function(data) {
-	            getLrc(data);  //处理获取的歌词
-			    lrcShow();
-				lrcScroll();
-	        }
-		});
-
-		if(i>4){
-			move(listBd,songItem[i].offsetTop-150);
-		}
-		else if(i==0){
-			move(listBd,0);
-		}
-		document.title= songData.info[i].name;
-		document.body.style["background-image"] = "url('images/" + songData.info[i].brief + ".jpg')";
-	}
-
 	// 进度条和时间
 	function progress(){
 		allTime=parseInt(audio.duration);
@@ -329,7 +324,7 @@
 			else if(iRandom){
 				clearTimeout(modeTimer);
 				i=parseInt(Math.random()*songData.total);
-				changeSong(i);
+				song.change(i);
 				play.continue();
 			}
 			else{
@@ -338,7 +333,7 @@
 					if(i == songData.total){
 						i=0;
 					}
-					changeSong(i);
+					song.change(i);
 					play.continue();
 				},1000)
 			}
@@ -544,7 +539,7 @@
 
 	// 初始化
 	song.list();
-	changeSong(0);
+	song.change(0);
 	drag(proIcon,proBar,proVal,"progress");
 	drag(volumeControl,volumeBar,volumeVal,"volume");
 
