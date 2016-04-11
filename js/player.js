@@ -154,7 +154,7 @@
 
 				songItem[a].index=a;
 				songItem[a].onclick=function(){
-					i=this.index;
+					i = this.index;
 					clearTimeout(playTimer);
 					playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
 						song.change(i);
