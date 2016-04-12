@@ -17,6 +17,7 @@
 		time = $("time"),
 		curTimeSpan = time.getElementsByTagName("span")[0],
 		totalTimeSpan = time.getElementsByTagName("span")[1],
+		iNow = 0,
 		i=curTimeMin=curTimeSec=allTimeMin=allTimeSec=curTime=allTime=scale=0,
 		barTimer=playTimer=modeTimer=moveTimer=null;
 
@@ -154,10 +155,10 @@
 
 				songItem[a].index=a;
 				songItem[a].onclick=function(){
-					i = this.index;
+					iNow = this.index;
 					clearTimeout(playTimer);
 					playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
-						song.change(i);
+						song.change(iNow);
 						play.continue();
 					},500);
 				}
@@ -177,12 +178,12 @@
 				songBox.className = songBoxClass;
 			}
 		},
-		change: function(i) {  // 切歌
-			songPic.setAttribute("src","images/"+ songData.info[i].brief + ".jpg");
-			audio.setAttribute("src","music/"+ songData.info[i].brief + ".mp3");
-			songName.innerHTML= songData.info[i].name;
-			songer.innerHTML= songData.info[i].songer;
-			album.innerHTML="《" + songData.info[i].album + "》";
+		change: function(iNow) {  // 切歌
+			songPic.setAttribute("src","images/"+ songData.info[iNow].brief + ".jpg");
+			audio.setAttribute("src","music/"+ songData.info[iNow].brief + ".mp3");
+			songName.innerHTML= songData.info[iNow].name;
+			songer.innerHTML= songData.info[iNow].songer;
+			album.innerHTML="《" + songData.info[iNow].album + "》";
 			proIcon.style.left=proVal.style.width=curTimeMin=curTimeSec=0; //换歌清0
 			curTimeSpan.innerHTML=totalTimeSpan.innerHTML="00:00";
 
@@ -192,25 +193,25 @@
 				removeClassN(songItem[a], "cur-song");
 			}
 
-			addClassN(songItem[i],"cur-song");
+			addClassN(songItem[iNow],"cur-song");
 
 			ajaxFn({
-				url: "lrc/" + songData.info[i].brief + ".txt",
+				url: "lrc/" + songData.info[iNow].brief + ".txt",
 				callback: function(data) {
-		            getLrc(data);  //处理获取的歌词
-				    lrcShow();
-					lrcScroll();
+		            lrc.get(data);  //处理获取的歌词
+				    lrc.show();
+					lrc.scroll();
 		        }
 			});
 
-			if(i>4){
-				move(listBd,songItem[i].offsetTop-150);
+			if(iNow > 4){
+				move(listBd, songItem[iNow].offsetTop-150);
+			}else{
+				move(listBd, 0);
 			}
-			else if(i==0){
-				move(listBd,0);
-			}
-			document.title= songData.info[i].name;
-			document.body.style["background-image"] = "url('images/" + songData.info[i].brief + ".jpg')";
+
+			document.title= songData.info[iNow].name;
+			document.body.style["background-image"] = "url('images/" + songData.info[iNow].brief + ".jpg')";
 		}
 	}
 
@@ -225,29 +226,29 @@
 		prev: function() { // 上一曲
 			if(iRandom){
 				clearTimeout(modeTimer);
-				i = parseInt(Math.random()*songData.total);
+				iNow = parseInt(Math.random()*songData.total);
 			}
 			else{
-				i--;
-				if(i == -1){
-					i = songData.total - 1;
+				iNow--;
+				if(iNow == -1){
+					iNow = songData.total - 1;
 				}
 			}
-			song.change(i);
+			song.change(iNow);
 			play.continue();
 		},
 		next: function() { // 下一曲
 			if(iRandom){
 				clearTimeout(modeTimer);
-				i = parseInt(Math.random()*songData.total);
+				iNow = parseInt(Math.random()*songData.total);
 			}
 			else{
-				i++;
-				if(i == songData.total){
-					i = 0;
+				iNow++;
+				if(iNow == songData.total){
+					iNow = 0;
 				}
 			}
-			song.change(i);
+			song.change(iNow);
 			play.continue();
 		},
 		pause: function(curTime) { // 暂停播放
@@ -257,8 +258,8 @@
 			curTime = audio.currentTime;
 			audio.pause();
 			clearInterval(barTimer);
-			removeClassN(songItem[i], "cur-song");
-			addClassN(songItem[i], "cur-song-stop");
+			removeClassN(songItem[iNow], "cur-song");
+			addClassN(songItem[iNow], "cur-song-stop");
 		},
 		continue: function(curTime) { // 重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
 			allTime = parseInt(audio.duration);
@@ -267,9 +268,9 @@
 			audio.startTime = curTime;
 			audio.play();
 			clearInterval(barTimer);
-			barTimer = setInterval(progress, 100);
-			removeClassN(songItem[i], "cur-song-stop");
-			addClassN(songItem[i],"cur-song");
+			barTimer = setInterval(play.progress, 100);
+			removeClassN(songItem[iNow], "cur-song-stop");
+			addClassN(songItem[iNow],"cur-song");
 		},
 		mode: {
 			list: function() {
@@ -295,62 +296,111 @@
 				removeClassN(listMode, "cur-mode");
 				audio.setAttribute("loop", "loop");
 			}
+		},
+		progress: function() { // 进度条和时间
+			allTime=parseInt(audio.duration);
+			curTime=parseInt(audio.currentTime);
+			proIcon.style.left=parseInt((curTime/allTime)*iW)+"px";
+			proVal.style.width=parseInt((curTime/allTime)*iW)+"px";
+			// 自动下一曲
+			if(curTimeSpan.innerHTML==totalTimeSpan.innerHTML&&curTimeSpan.innerHTML!="00:00"){
+				clearInterval(barTimer);
+				if(iSingle){
+					clearTimeout(modeTimer);
+					play.continue();
+				}
+				else if(iRandom){
+					clearTimeout(modeTimer);
+					iNow=parseInt(Math.random()*songData.total);
+					song.change(iNow);
+					play.continue();
+				}
+				else{
+					modeTimer=setTimeout(function(){
+						iNow++;
+						if(iNow == songData.total){
+							iNow=0;
+						}
+						song.change(iNow);
+						play.continue();
+					},1000)
+				}
+			}
+			// 现在播放时间与总时间
+			curTimeMin=parseInt(curTime/60);
+			curTimeSec=curTime%60;
+			if(curTimeMin<1){
+				curTimeMin=0;
+			}
+			curTimeSpan.innerHTML=fillZero(curTimeMin,2)+":"+fillZero(curTimeSec,2);
+
+			allTimeMin=parseInt(allTime/60);
+			allTimeSec=parseInt(allTime)%60;
+			totalTimeSpan.innerHTML=fillZero(allTimeMin,2)+":"+fillZero(allTimeSec,2);
+
+			lrc.scroll();
 		}
 	}
 
-	// 播放、暂停，上一曲、下一曲
-	addEvent(playStatus, "click", play.status);
-	addEvent(playPrev, "click", play.prev);
-	addEvent(playNext, "click", play.next);
-
-	// 播放模式
-	addEvent(listMode, "click", play.mode.list);
-	addEvent(randomMode, "click", play.mode.random);
-	addEvent(singleMode, "click", play.mode.single);
-
-	// 进度条和时间
-	function progress(){
-		allTime=parseInt(audio.duration);
-		curTime=parseInt(audio.currentTime);
-		proIcon.style.left=parseInt((curTime/allTime)*iW)+"px";
-		proVal.style.width=parseInt((curTime/allTime)*iW)+"px";
-		// 自动下一曲
-		if(curTimeSpan.innerHTML==totalTimeSpan.innerHTML&&curTimeSpan.innerHTML!="00:00"){
-			clearInterval(barTimer);
-			if(iSingle){
-				clearTimeout(modeTimer);
-				play.continue();
-			}
-			else if(iRandom){
-				clearTimeout(modeTimer);
-				i=parseInt(Math.random()*songData.total);
-				song.change(i);
-				play.continue();
-			}
-			else{
-				modeTimer=setTimeout(function(){
-					i++;
-					if(i == songData.total){
-						i=0;
+	var lrc = {
+		get: function(songLrc) { // 处理歌词，得到歌词数组
+			oldLrc=songLrc.replace(/^\s+|\s+$/g,""); // ajax lrc返回的歌词，对该字符串首尾删除空白
+			newLrc=oldLrc.match(regClear);  //清除无时间标示的信息，只剩[00:00.00]xxx 的形式。 每行都有时间（可能多个时间）对应歌词
+			oldShowLrcArr=[];  //每次切歌，将旧时间歌词数组清空。
+			for(var i=0;i<newLrc.length;i++){
+				repeatLrcTime=newLrc[i].match(regTime); //得到数组项的时间
+				repeatLrcWord=newLrc[i].match(regWord); //得到数组项的歌词
+				if(repeatLrcTime.length==1){
+					if(!repeatLrcWord){  //如果该行歌词为空，则不能使用join. 把改行歌词设为 &nbsp;
+						repeatLrcWord=["&nbsp;"];
 					}
-					song.change(i);
-					play.continue();
-				},1000)
+					oldShowLrcArr.push(repeatLrcTime[0]+"-"+repeatLrcWord.join(""));
+				}
+				else if(repeatLrcTime.length>1){  //副歌部分，多个时间对于一行歌词
+					for(var r=0;r<repeatLrcTime.length;r++){
+						oldShowLrcArr.push(repeatLrcTime[r]+"-"+repeatLrcWord.join(""));
+					}
+				}
+			}
+			newShowLrcArr=oldShowLrcArr.sort();
+
+			//获取最后时间数组和歌词数组，一一对应
+			function getLrcTimeWord(){
+				lrcTime=[];  //每次切歌，将旧时间歌词数组清空。
+				lrcWord=[];
+				for(var show=0;show<newShowLrcArr.length;show++){
+					lrcTime.push(newShowLrcArr[show].match(regMatchTime)[0]);
+					lrcWord.push(newShowLrcArr[show].split("-")[1]);
+				}
+			}
+			getLrcTimeWord();
+		},
+		show: function() { // 显示歌词
+			var oFragment=document.createDocumentFragment();
+			for(var w=0;w<lrcWord.length;w++){ 
+				var oLi=document.createElement("li");
+				oLi.innerHTML=lrcWord[w];
+				oFragment.appendChild(oLi);
+			}
+			lrcUl.appendChild(oFragment);
+		},
+		scroll: function() { // 歌词滚动
+			if(curTimeSpan.innerHTML=="00:00"){
+				move(lrcBox,0);   // 单曲播放，或者起始播放。歌词返回顶部
+			}
+			for(var t=0;t<lrcTime.length;t++){
+				if(lrcTime[t]==curTimeSpan.innerHTML){
+					var aLrcShowLi=lrcUl.getElementsByTagName("li");
+					for(var w=0;w<aLrcShowLi.length;w++){
+						aLrcShowLi[w].className="";
+						aLrcShowLi[t].className="curLrc";
+					}
+					if(t>3){ // 如果大于第三行，则开始滚动	
+						move(lrcBox,aLrcShowLi[t].offsetTop-80); // aLrcLi[t].offsetTop-lrcBox.scrollTop=4*20; 当前歌词与顶部固定位置80px
+					}
+				}
 			}
 		}
-		// 现在播放时间与总时间
-		curTimeMin=parseInt(curTime/60);
-		curTimeSec=curTime%60;
-		if(curTimeMin<1){
-			curTimeMin=0;
-		}
-		curTimeSpan.innerHTML=fillZero(curTimeMin,2)+":"+fillZero(curTimeSec,2);
-
-		allTimeMin=parseInt(allTime/60);
-		allTimeSec=parseInt(allTime)%60;
-		totalTimeSpan.innerHTML=fillZero(allTimeMin,2)+":"+fillZero(allTimeSec,2);
-
-		lrcScroll();
 	}
 
 	function drag(obj,elem01,elem02,option){
@@ -401,73 +451,6 @@
 				}
 			}
 			return false;
-		}
-	}
-
-	// 列表展开与折叠
-	addEvent(listBtn, "click", song.listSlide);
-
-	// 处理歌词，得到歌词数组
-	function getLrc(songLrc){
-		oldLrc=songLrc.replace(/^\s+|\s+$/g,""); // ajax lrc返回的歌词，对该字符串首尾删除空白
-		newLrc=oldLrc.match(regClear);  //清除无时间标示的信息，只剩[00:00.00]xxx 的形式。 每行都有时间（可能多个时间）对应歌词
-		oldShowLrcArr=[];  //每次切歌，将旧时间歌词数组清空。
-		for(var i=0;i<newLrc.length;i++){
-			repeatLrcTime=newLrc[i].match(regTime); //得到数组项的时间
-			repeatLrcWord=newLrc[i].match(regWord); //得到数组项的歌词
-			if(repeatLrcTime.length==1){
-				if(!repeatLrcWord){  //如果该行歌词为空，则不能使用join. 把改行歌词设为 &nbsp;
-					repeatLrcWord=["&nbsp;"];
-				}
-				oldShowLrcArr.push(repeatLrcTime[0]+"-"+repeatLrcWord.join(""));
-			}
-			else if(repeatLrcTime.length>1){  //副歌部分，多个时间对于一行歌词
-				for(var r=0;r<repeatLrcTime.length;r++){
-					oldShowLrcArr.push(repeatLrcTime[r]+"-"+repeatLrcWord.join(""));
-				}
-			}
-		}
-		newShowLrcArr=oldShowLrcArr.sort();
-
-		//获取最后时间数组和歌词数组，一一对应
-		function getLrcTimeWord(){
-			lrcTime=[];  //每次切歌，将旧时间歌词数组清空。
-			lrcWord=[];
-			for(var show=0;show<newShowLrcArr.length;show++){
-				lrcTime.push(newShowLrcArr[show].match(regMatchTime)[0]);
-				lrcWord.push(newShowLrcArr[show].split("-")[1]);
-			}
-		}
-		getLrcTimeWord();
-	}
-
-	// 显示歌词
-	function lrcShow(){
-		var oFragment=document.createDocumentFragment();
-		for(var w=0;w<lrcWord.length;w++){ 
-			var oLi=document.createElement("li");
-			oLi.innerHTML=lrcWord[w];
-			oFragment.appendChild(oLi);
-		}
-		lrcUl.appendChild(oFragment);
-	}
-
-	// 歌词滚动
-	function lrcScroll(){
-		if(curTimeSpan.innerHTML=="00:00"){
-			move(lrcBox,0);   // 单曲播放，或者起始播放。歌词返回顶部
-		}
-		for(var t=0;t<lrcTime.length;t++){
-			if(lrcTime[t]==curTimeSpan.innerHTML){
-				var aLrcShowLi=lrcUl.getElementsByTagName("li");
-				for(var w=0;w<aLrcShowLi.length;w++){
-					aLrcShowLi[w].className="";
-					aLrcShowLi[t].className="curLrc";
-				}
-				if(t>3){ // 如果大于第三行，则开始滚动	
-					move(lrcBox,aLrcShowLi[t].offsetTop-80); // aLrcLi[t].offsetTop-lrcBox.scrollTop=4*20; 当前歌词与顶部固定位置80px
-				}
-			}
 		}
 	}
 
@@ -542,6 +525,19 @@
 	song.change(0);
 	drag(proIcon,proBar,proVal,"progress");
 	drag(volumeControl,volumeBar,volumeVal,"volume");
+
+	// 列表展开与折叠
+	addEvent(listBtn, "click", song.listSlide);
+
+	// 播放、暂停，上一曲、下一曲
+	addEvent(playStatus, "click", play.status);
+	addEvent(playPrev, "click", play.prev);
+	addEvent(playNext, "click", play.next);
+
+	// 播放模式
+	addEvent(listMode, "click", play.mode.list);
+	addEvent(randomMode, "click", play.mode.random);
+	addEvent(singleMode, "click", play.mode.single);
 
 })()
 //  1 歌曲时间
