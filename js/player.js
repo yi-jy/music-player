@@ -127,37 +127,37 @@
 		list: function() { // 加载歌曲列表
 			var oFragment = document.createDocumentFragment();
 			for(var i = 0; i < songData.total; i += 1){
-				var oLi = document.createElement("li");
-				oLi.innerHTML  = '<span class="list-song-tracks">';
-				oLi.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
-				oLi.innerHTML += '</span>';
-				oLi.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
-				oLi.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
-				oFragment.appendChild(oLi);
+				var tempSongItem = document.createElement("li");
+				tempSongItem.innerHTML  = '<span class="list-song-tracks">';
+				tempSongItem.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
+				tempSongItem.innerHTML += '</span>';
+				tempSongItem.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
+				tempSongItem.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
+				oFragment.appendChild(tempSongItem);
 			}
 			songUl.appendChild(oFragment);
 			songItem = songUl.getElementsByTagName("li");
 
-			for(var a=0;a<songItem.length;a++){
-				if(a%2!=0){
-					songItem[a].className="bg-song";
+			for(var n = 0; n < songItem.length; n += 1){
+				if(n%2 !== 0){
+					songItem[n].className = "bg-song";
 				}
 				else{
-					songItem[a].removeAttribute("class");
+					songItem[n].removeAttribute("class");
 				}
 
-				songItem[a].onmouseover=function(){
-					addClassN(this,"hoverLi");
+				songItem[n].onmouseover = function() {
+					addClassN(this, "hoverLi");
 				}
-				songItem[a].onmouseout=function(){
-					removeClassN(this,"hoverLi");
+				songItem[n].onmouseout = function() {
+					removeClassN(this, "hoverLi");
 				}
 
-				songItem[a].index=a;
-				songItem[a].onclick=function(){
+				songItem[n].index = n;
+				songItem[n].ondblclick = function() {
 					iNow = this.index;
 					clearTimeout(playTimer);
-					playTimer=setTimeout(function(){  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
+					playTimer = setTimeout( function() {  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
 						song.change(iNow);
 						play.continue();
 					},500);
@@ -189,11 +189,11 @@
 
 			lrcUl.innerHTML="";
 
-			for(var a = 0; a < songItem.length; a += 1){
-				removeClassN(songItem[a], "cur-song");
+			for(var n = 0; n < songItem.length; n += 1){
+				removeClassN(songItem[n], "cur-song");
 			}
 
-			addClassN(songItem[iNow],"cur-song");
+			addClassN(songItem[iNow], "cur-song");
 
 			ajaxFn({
 				url: "lrc/" + songData.info[iNow].brief + ".txt",
