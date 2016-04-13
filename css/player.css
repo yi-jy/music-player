@@ -38,7 +38,7 @@ html,body{width:100%;height:100%;overflow:hidden;color:#fff;font:12px/20px "Helv
 
 /***歌曲列表***/
 .list-btn{position:absolute;right:0;top:8px;width:18px;height:30px;border-top-left-radius:3px;border-bottom-left-radius:3px;font:bold 16px/30px "Mircrosoft Yahei";text-align:center;background:#ccc;z-index:1000;}
-.song-box{position: absolute;top:0;width:100%;border:1px solid #aaa;color:#666;transition:0.6s all;-webkit-transition:0.6s all;z-index:10;-moz-user-select:none;}
+.song-box{position: absolute;top:0;width:100%;border:1px solid #aaa;color:#666;transition:0.5s left;-webkit-transition:0.5s left;z-index:10;-moz-user-select:none;}
 .song-box-unfold{left:0;}
 .song-box-fold{left:100%;}
 .song-box .close-list{top:5px;right:8px;}

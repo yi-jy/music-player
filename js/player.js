@@ -41,6 +41,7 @@
 		singleMode = $("single-mode"),
 		randomMode = $("random-mode"),
 		listMode = $("list-mode"),
+		isPlay = false,
 		iSingle = iRandom = false;  // 默认列表循环
 
 	// 歌词格式规则
@@ -127,12 +128,14 @@
 		list: function() { // 加载歌曲列表
 			var oFragment = document.createDocumentFragment();
 			for(var i = 0; i < songData.total; i += 1){
-				var tempSongItem = document.createElement("li");
-				tempSongItem.innerHTML  = '<span class="list-song-tracks">';
-				tempSongItem.innerHTML += '	<span class="tracks-val">' + (i+1) + '</span>';
-				tempSongItem.innerHTML += '</span>';
-				tempSongItem.innerHTML += '<span class="list-song-name">' + songData.info[i].name + '</span>';
-				tempSongItem.innerHTML += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
+				var tempSongItem = document.createElement("li"),
+					tempHtml = '';
+				tempHtml += '<span class="list-song-tracks">';
+				tempHtml += ' <span class="tracks-val">' + (i+1) + '</span>';
+				tempHtml += '</span>';
+				tempHtml += '<span class="list-song-name">' + songData.info[i].name + '</span>';
+				tempHtml += '<span class="list-song-songer">' + songData.info[i].songer + '</span>';
+				tempSongItem.innerHTML = tempHtml;
 				oFragment.appendChild(tempSongItem);
 			}
 			songUl.appendChild(oFragment);
@@ -160,22 +163,35 @@
 					playTimer = setTimeout( function() {  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
 						song.change(iNow);
 						play.continue();
-					},500);
+					}, 200);
 				}
 			}
 		},
-		listSlide: function() { // 歌曲列表切换
-			if(listBtn.className == "abs list-btn unfold-list"){
-				listAction(listBtn, "abs list-btn fold-list", "<", "关闭歌曲列表", "abs song-box song-box-fold");
+		listSwitch: function() { // 歌曲列表切换
+			var action = function(opt) {
+				opt.btn.className = opt.className;
+				opt.btn.innerHTML = opt.html;
+				opt.btn.setAttribute("title", opt.title);
+				opt.box.className = opt.boxClassName;
 			}
-			else{
-				listAction(listBtn, "abs list-btn unfold-list", ">", "展开歌曲列表", "abs song-box song-box-unfold");
-			}
-			function listAction(obj, btnClass, btnHtml, btnTitle, songBoxClass) {
-				obj.className = btnClass;
-				obj.innerHTML = btnHtml;
-				obj.setAttribute("title", btnTitle);
-				songBox.className = songBoxClass;
+			if(element.hasClass(listBtn, 'unfold-list')){
+				action({
+					btn: listBtn,
+					className: 'abs list-btn fold-list',
+					html: '<',
+					title: '关闭歌曲列表',
+					box: songBox,
+					boxClassName: 'abs song-box song-box-fold'
+				});
+			}else{
+				action({
+					btn: listBtn,
+					className: 'abs list-btn unfold-list',
+					html: '>',
+					title: '展开歌曲列表',
+					box: songBox,
+					boxClassName: 'abs song-box song-box-unfold'
+				});
 			}
 		},
 		change: function(iNow) {  // 切歌
@@ -193,7 +209,7 @@
 				removeClassN(songItem[n], "cur-song");
 			}
 
-			addClassN(songItem[iNow], "cur-song");
+			isPlay && addClassN(songItem[iNow], "cur-song");
 
 			ajaxFn({
 				url: "lrc/" + songData.info[iNow].brief + ".txt",
@@ -217,10 +233,12 @@
 
 	var play = {
 		status: function() { // 暂停或播放
-			if(playStatus.className == "status status-stop"){
+			if(playStatus.className === "status status-stop"){
 				play.continue();
+				isPlay = true;
 			}else{
 				play.pause();
+				isPlay = false;
 			}
 		},
 		prev: function() { // 上一曲
@@ -300,6 +318,12 @@
 		progress: function() { // 进度条和时间
 			allTime=parseInt(audio.duration);
 			curTime=parseInt(audio.currentTime);
+
+			if(!allTime){
+				totalTimeSpan.innerHTML = '00:00';
+				return;
+			}
+
 			proIcon.style.left=parseInt((curTime/allTime)*iW)+"px";
 			proVal.style.width=parseInt((curTime/allTime)*iW)+"px";
 			// 自动下一曲
@@ -527,7 +551,7 @@
 	drag(volumeControl,volumeBar,volumeVal,"volume");
 
 	// 列表展开与折叠
-	addEvent(listBtn, "click", song.listSlide);
+	addEvent(listBtn, "click", song.listSwitch);
 
 	// 播放、暂停，上一曲、下一曲
 	addEvent(playStatus, "click", play.status);
