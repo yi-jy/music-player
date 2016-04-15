@@ -3,29 +3,41 @@
 	var audio = document.createElement("audio");
 
 	// 歌曲信息
-	var songPic = $("song-pic"),
-		songDes = $("song-des"),
-		songName = songDes.getElementsByTagName("h2")[0],
-		songer = songDes.getElementsByTagName("span")[0],
-		album = songDes.getElementsByTagName("span")[1];
+	var songPic = element.byId("#song-pic"),
+		songDes = element.byId("#song-des"),
+		songName = element.byClass('.song-name', songDes)[0],
+		songer = element.byClass('.songer', songDes)[0],
+		album = element.byClass('.album', songDes)[0],
+		iNow = 0;
 
 	// 播放进度与时间
-	var proBar = $("progress-bar"),
-		proIcon = $("progress-icon"),
-		iW = proBar.offsetWidth-proIcon.offsetWidth,
-		proVal = $("progress-val"),
-		time = $("time"),
-		curTimeSpan = time.getElementsByTagName("span")[0],
-		totalTimeSpan = time.getElementsByTagName("span")[1],
-		iNow = 0,
-		i=curTimeMin=curTimeSec=allTimeMin=allTimeSec=curTime=allTime=scale=0,
-		barTimer=playTimer=modeTimer=moveTimer=null;
+	var progressBar = element.byId("#progress-bar"),
+		progressIcon = element.byId("#progress-icon"),
+		progressVal = element.byId("#progress-val"),
+		progressTime = element.byId("#progress-time"),
+		progressCurTime = element.byClass('.cur-time', progressTime)[0],
+		progressTotalTime = element.byClass('.total-time', progressTime)[0],
+		progressMoveWidth = progressBar.offsetWidth - progressIcon.offsetWidth,
+		scale = 0,
+		time = {
+			curMin: 0,
+			curSec: 0,
+			totalMin: 0,
+			totalSec: 0,
+			cur: 0,
+			total: 0
+		},
+		timer = {
+			progress: null,
+			playSelect: null,
+			playNext: null
+		};
 
 	// 音量键
-	var volumeBar=$("volume-bar"),
-		volumeControl=volumeBar.getElementsByTagName("b")[0],
-		volumeVal=volumeBar.getElementsByTagName("b")[1],
-		volumeIcon02=$("volume-icon02");
+	var volumeBar = $("volume-bar"),
+		volumeControl = volumeBar.getElementsByTagName("b")[0],
+		volumeVal = volumeBar.getElementsByTagName("b")[1],
+		volumeIcon02 = $("volume-icon02");
 
 	// 歌曲列表
 	var listBtn = $("list-btn"),
@@ -159,8 +171,8 @@
 				songItem[n].index = n;
 				songItem[n].ondblclick = function() {
 					iNow = this.index;
-					clearTimeout(playTimer);
-					playTimer = setTimeout( function() {  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
+					clearTimeout(timer.playSelect);
+					timer.playSelect = setTimeout( function() {  // 防止歌曲刚被点击播放，再次点击（即双击）列表时，歌曲又从0开始播放。
 						song.change(iNow);
 						play.continue();
 					}, 200);
@@ -200,8 +212,8 @@
 			songName.innerHTML= songData.info[iNow].name;
 			songer.innerHTML= songData.info[iNow].songer;
 			album.innerHTML="《" + songData.info[iNow].album + "》";
-			proIcon.style.left=proVal.style.width=curTimeMin=curTimeSec=0; //换歌清0
-			curTimeSpan.innerHTML=totalTimeSpan.innerHTML="00:00";
+			progressIcon.style.left=progressVal.style.width=time.curMin = time.curSec =0; //换歌清0
+			progressCurTime.innerHTML=progressTotalTime.innerHTML="00:00";
 
 			lrcUl.innerHTML="";
 
@@ -243,7 +255,7 @@
 		},
 		prev: function() { // 上一曲
 			if(iRandom){
-				clearTimeout(modeTimer);
+				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
 			}
 			else{
@@ -257,7 +269,7 @@
 		},
 		next: function() { // 下一曲
 			if(iRandom){
-				clearTimeout(modeTimer);
+				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
 			}
 			else{
@@ -269,24 +281,24 @@
 			song.change(iNow);
 			play.continue();
 		},
-		pause: function(curTime) { // 暂停播放
+		pause: function() { // 暂停播放
 			playStatus.className = "status status-stop";
 			songPic.className = "rorate-pic rorate-pic-stop";
-			allTime = parseInt(audio.duration);
-			curTime = audio.currentTime;
+			time.total = parseInt(audio.duration);
+			time.cur = audio.currentTime;
 			audio.pause();
-			clearInterval(barTimer);
+			clearInterval(timer.progress);
 			removeClassN(songItem[iNow], "cur-song");
 			addClassN(songItem[iNow], "cur-song-stop");
 		},
-		continue: function(curTime) { // 重新给audio赋值src，会使curTime=audio.currentTime=0;则歌曲从头播放
-			allTime = parseInt(audio.duration);
+		continue: function(continueTime) { // 重新给audio赋值src，会使continueTime = audio.currentTime=0;则歌曲从头播放
+			time.total = parseInt(audio.duration);
 			playStatus.className = "status status-play";
 			songPic.className = "rorate-pic";
-			audio.startTime = curTime;
+			audio.startTime = continueTime;
 			audio.play();
-			clearInterval(barTimer);
-			barTimer = setInterval(play.progress, 100);
+			clearInterval(timer.progress);
+			timer.progress = setInterval(play.progress, 100);
 			removeClassN(songItem[iNow], "cur-song-stop");
 			addClassN(songItem[iNow],"cur-song");
 		},
@@ -316,31 +328,31 @@
 			}
 		},
 		progress: function() { // 进度条和时间
-			allTime=parseInt(audio.duration);
-			curTime=parseInt(audio.currentTime);
+			time.total = parseInt(audio.duration);
+			time.cur = parseInt(audio.currentTime);
 
-			if(!allTime){
-				totalTimeSpan.innerHTML = '00:00';
+			if(!time.total){
+				progressTotalTime.innerHTML = '00:00';
 				return;
 			}
 
-			proIcon.style.left=parseInt((curTime/allTime)*iW)+"px";
-			proVal.style.width=parseInt((curTime/allTime)*iW)+"px";
+			progressIcon.style.left=parseInt((time.cur/time.total)*progressMoveWidth)+"px";
+			progressVal.style.width=parseInt((time.cur/time.total)*progressMoveWidth)+"px";
 			// 自动下一曲
-			if(curTimeSpan.innerHTML==totalTimeSpan.innerHTML&&curTimeSpan.innerHTML!="00:00"){
-				clearInterval(barTimer);
+			if(progressCurTime.innerHTML==progressTotalTime.innerHTML&&progressCurTime.innerHTML!="00:00"){
+				clearInterval(timer.progress);
 				if(iSingle){
-					clearTimeout(modeTimer);
+					clearTimeout(timer.playNext);
 					play.continue();
 				}
 				else if(iRandom){
-					clearTimeout(modeTimer);
+					clearTimeout(timer.playNext);
 					iNow=parseInt(Math.random()*songData.total);
 					song.change(iNow);
 					play.continue();
 				}
 				else{
-					modeTimer=setTimeout(function(){
+					timer.playNext=setTimeout(function(){
 						iNow++;
 						if(iNow == songData.total){
 							iNow=0;
@@ -351,16 +363,16 @@
 				}
 			}
 			// 现在播放时间与总时间
-			curTimeMin=parseInt(curTime/60);
-			curTimeSec=curTime%60;
-			if(curTimeMin<1){
-				curTimeMin=0;
+			time.curMin = parseInt(time.cur/60);
+			time.curSec =time.cur%60;
+			if(time.curMin < 1){
+				time.curMin = 0;
 			}
-			curTimeSpan.innerHTML=fillZero(curTimeMin,2)+":"+fillZero(curTimeSec,2);
+			progressCurTime.innerHTML=fillZero(time.curMin , 2)+":"+fillZero(time.curSec ,2);
 
-			allTimeMin=parseInt(allTime/60);
-			allTimeSec=parseInt(allTime)%60;
-			totalTimeSpan.innerHTML=fillZero(allTimeMin,2)+":"+fillZero(allTimeSec,2);
+			time.totalMin =parseInt(time.total/60);
+			time.totalSec =parseInt(time.total)%60;
+			progressTotalTime.innerHTML=fillZero(time.totalMin ,2)+":"+fillZero(time.totalSec ,2);
 
 			lrc.scroll();
 		}
@@ -409,11 +421,11 @@
 			lrcUl.appendChild(oFragment);
 		},
 		scroll: function() { // 歌词滚动
-			if(curTimeSpan.innerHTML=="00:00"){
+			if(progressCurTime.innerHTML=="00:00"){
 				move(lrcBox,0);   // 单曲播放，或者起始播放。歌词返回顶部
 			}
 			for(var t=0;t<lrcTime.length;t++){
-				if(lrcTime[t]==curTimeSpan.innerHTML){
+				if(lrcTime[t]==progressCurTime.innerHTML){
 					var aLrcShowLi=lrcUl.getElementsByTagName("li");
 					for(var w=0;w<aLrcShowLi.length;w++){
 						aLrcShowLi[w].className="";
@@ -470,8 +482,8 @@
 				}
 
 				if(option=="progress"){
-					curTime=audio.currentTime=scale*allTime;
-					play.continue(curTime);
+					time.cur = audio.currentTime = scale*time.total;
+					play.continue(time.cur);
 				}
 			}
 			return false;
@@ -547,7 +559,7 @@
 	// 初始化
 	song.list();
 	song.change(0);
-	drag(proIcon,proBar,proVal,"progress");
+	drag(progressIcon,progressBar,progressVal,"progress");
 	drag(volumeControl,volumeBar,volumeVal,"volume");
 
 	// 列表展开与折叠
