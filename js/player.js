@@ -34,10 +34,10 @@
 		};
 
 	// 音量键
-	var volumeBar = $("volume-bar"),
-		volumeControl = volumeBar.getElementsByTagName("b")[0],
-		volumeVal = volumeBar.getElementsByTagName("b")[1],
-		volumeIcon02 = $("volume-icon02");
+	var volumeBar = element.byId("volume-bar"),
+		volumeControl = element.byClass('.volume-control', volumeBar)[0],
+		volumeVal = element.byClass('.volume-val', volumeBar)[0],
+		volumeIcon02 = element.byId("volume-icon02");
 
 	// 歌曲列表
 	var listBtn = $("list-btn"),
@@ -439,49 +439,51 @@
 		}
 	}
 
-	function drag(obj,elem01,elem02,option){
-		obj.onmousedown=function(ev){
-			var oEvent=ev||event,
-				disX=oEvent.clientX-obj.offsetLeft-obj.offsetWidth/2;
-			if(obj.setCapture){
-				obj.onmousemove=fnMove;
-				obj.onmouseup=fnUp;
-				obj.setCapture();
-			}
-			else{
-				document.onmousemove=fnMove;
-				document.onmouseup=fnUp;
+	function drag(opt){
+		opt.controlEle.onmousedown = function(ev){
+			var oEvent = ev || event,
+				disX = oEvent.clientX - opt.controlEle.offsetLeft - opt.controlEle.offsetWidth/2;
+			if(opt.controlEle.setCapture){
+				opt.controlEle.onmousemove = fnMove;
+				opt.controlEle.onmouseup = fnUp;
+				opt.controlEle.setCapture();
+			}else{
+				document.onmousemove = fnMove;
+				document.onmouseup = fnUp;
 			}
 			function fnMove(ev){
-				var oEvent=ev||event;
-				var l=oEvent.clientX-disX;
-				if(l>=elem01.offsetWidth-obj.offsetWidth){
-					l=elem01.offsetWidth-obj.offsetWidth;
+				var oEvent = ev || event,
+					l = oEvent.clientX - disX;
+
+				if(l >= opt.barEle.offsetWidth - opt.controlEle.offsetWidth){
+					l = opt.barEle.offsetWidth-opt.controlEle.offsetWidth;
+				}else if(oEvent.clientX - disX < 0){
+					l = 0;
 				}
-				else if(oEvent.clientX-disX<0){
-					l=0;
-				}
-				obj.style.left=l+"px";
-				elem02.style.width=l+"px";
-				scale=l/(elem01.offsetWidth-obj.offsetWidth);
-				if(option=="volume"){
-					audio.volume=scale;
-					if(scale==0){
-						volumeIcon02.className="abs volume-icon03";
+
+				opt.controlEle.style.left = l + "px";
+				opt.valEle.style.width = l+"px";
+				scale= l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
+
+				if(opt.type === "volume"){
+					audio.volume = scale;
+					if(scale === 0){
+						volumeIcon02.className = "abs volume-icon03";
 					}
 					else{
-						volumeIcon02.className="abs volume-icon02";
+						volumeIcon02.className = "abs volume-icon02";
 					}
 				}
 			}
 			function fnUp(){
-				this.onmousemove=null;
-				this.onmouseup=null;
+				this.onmousemove = null;
+				this.onmouseup = null;
+
 				if(this.releaseCapture){
 					this.releaseCapture();
 				}
 
-				if(option=="progress"){
+				if(opt.type === "progress"){
 					time.cur = audio.currentTime = scale*time.total;
 					play.continue(time.cur);
 				}
@@ -559,8 +561,22 @@
 	// 初始化
 	song.list();
 	song.change(0);
-	drag(progressIcon,progressBar,progressVal,"progress");
-	drag(volumeControl,volumeBar,volumeVal,"volume");
+
+	// 进度条拖动
+	drag({
+		controlEle: progressIcon,
+		barEle: progressBar,
+		valEle: progressVal,
+		type: 'progress'
+	});
+
+	// 音量调整
+	drag({
+		controlEle: volumeControl,
+		barEle: volumeBar,
+		valEle: volumeVal,
+		type: 'volume'
+	});
 
 	// 列表展开与折叠
 	addEvent(listBtn, "click", song.listSwitch);
