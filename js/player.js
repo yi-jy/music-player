@@ -364,7 +364,7 @@
 			}
 			// 现在播放时间与总时间
 			time.curMin = parseInt(time.cur/60);
-			time.curSec =time.cur%60;
+			time.curSec = time.cur%60;
 			if(time.curMin < 1){
 				time.curMin = 0;
 			}
@@ -441,6 +441,8 @@
 
 	function drag(opt){
 		opt.controlEle.onmousedown = function(ev){
+			timer.progress && clearInterval(timer.progress);
+
 			var oEvent = ev || event,
 				disX = oEvent.clientX - opt.controlEle.offsetLeft - opt.controlEle.offsetWidth/2;
 			if(opt.controlEle.setCapture){
@@ -462,8 +464,8 @@
 				}
 
 				opt.controlEle.style.left = l + "px";
-				opt.valEle.style.width = l+"px";
-				scale= l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
+				opt.valEle.style.width = l + "px";
+				scale = l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
 
 				if(opt.type === "volume"){
 					audio.volume = scale;
