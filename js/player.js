@@ -18,7 +18,7 @@
 		progressCurTime = element.byClass('.cur-time', progressTime)[0],
 		progressTotalTime = element.byClass('.total-time', progressTime)[0],
 		progressMoveWidth = progressBar.offsetWidth - progressIcon.offsetWidth,
-		scale = 0,
+		progressScale = 0,
 		time = {
 			curMin: 0,
 			curSec: 0,
@@ -40,10 +40,10 @@
 		volumeIcon02 = element.byId("volume-icon02");
 
 	// 歌曲列表
-	var listBtn = $("list-btn"),
-		songBox = $("song-box"),
-		listBd = $("list-bd"),
-		songUl = listBd.getElementsByTagName("ul")[0],
+	var listBtn = element.byId("list-btn"),
+		songBox = element.byId("song-box"),
+		listBd = element.byId("list-bd"),
+		listGroup = element.byId("list-group"),
 		songItem = null;
 
 	// 播放与模式键
@@ -150,8 +150,8 @@
 				tempSongItem.innerHTML = tempHtml;
 				oFragment.appendChild(tempSongItem);
 			}
-			songUl.appendChild(oFragment);
-			songItem = songUl.getElementsByTagName("li");
+			listGroup.appendChild(oFragment);
+			songItem = listGroup.getElementsByTagName("li");
 
 			for(var n = 0; n < songItem.length; n += 1){
 				if(n%2 !== 0){
@@ -298,7 +298,7 @@
 			audio.startTime = continueTime;
 			audio.play();
 			clearInterval(timer.progress);
-			timer.progress = setInterval(play.progress, 100);
+			timer.progress = setInterval(progress.update, 100);
 			removeClassN(songItem[iNow], "cur-song-stop");
 			addClassN(songItem[iNow],"cur-song");
 		},
@@ -326,8 +326,12 @@
 				removeClassN(listMode, "cur-mode");
 				audio.setAttribute("loop", "loop");
 			}
-		},
-		progress: function() { // 进度条和时间
+		}
+	}
+
+	var progress = {
+		update: function() {
+
 			time.total = parseInt(audio.duration);
 			time.cur = parseInt(audio.currentTime);
 
@@ -336,45 +340,53 @@
 				return;
 			}
 
-			progressIcon.style.left=parseInt((time.cur/time.total)*progressMoveWidth)+"px";
-			progressVal.style.width=parseInt((time.cur/time.total)*progressMoveWidth)+"px";
+			progressScale = time.cur/time.total;
+
+			progressIcon.style.left = progressVal.style.width = parseInt(progressScale*progressMoveWidth) + "px";
+
 			// 自动下一曲
-			if(progressCurTime.innerHTML==progressTotalTime.innerHTML&&progressCurTime.innerHTML!="00:00"){
+			if(progressCurTime.innerHTML === progressTotalTime.innerHTML && progressCurTime.innerHTML !== "00:00"){
 				clearInterval(timer.progress);
+				// 检测当前播放模式
 				if(iSingle){
 					clearTimeout(timer.playNext);
 					play.continue();
-				}
-				else if(iRandom){
+				}else if(iRandom){
 					clearTimeout(timer.playNext);
-					iNow=parseInt(Math.random()*songData.total);
+					iNow = parseInt(Math.random()*songData.total);
 					song.change(iNow);
 					play.continue();
-				}
-				else{
-					timer.playNext=setTimeout(function(){
+				}else{
+					timer.playNext = setTimeout(function(){
 						iNow++;
 						if(iNow == songData.total){
-							iNow=0;
+							iNow = 0;
 						}
 						song.change(iNow);
 						play.continue();
-					},1000)
+					}, 1000);
 				}
 			}
-			// 现在播放时间与总时间
-			time.curMin = parseInt(time.cur/60);
-			time.curSec = time.cur%60;
+
+			progress.updateTime(time, progressScale);
+
+			lrc.scroll();
+		},
+		updateTime: function(time, progressScale) {
+			time.curMin = parseInt(time.total*progressScale/60);
+			time.curSec = Math.ceil(time.total*progressScale%60);
 			if(time.curMin < 1){
 				time.curMin = 0;
 			}
-			progressCurTime.innerHTML=fillZero(time.curMin , 2)+":"+fillZero(time.curSec ,2);
+			progressCurTime.innerHTML=fillZero(time.curMin, 2) + ":" + fillZero(time.curSec, 2);
 
-			time.totalMin =parseInt(time.total/60);
-			time.totalSec =parseInt(time.total)%60;
-			progressTotalTime.innerHTML=fillZero(time.totalMin ,2)+":"+fillZero(time.totalSec ,2);
+			if(time.curSec > 0){
+				return;
+			}
 
-			lrc.scroll();
+			time.totalMin = parseInt(time.total/60);
+			time.totalSec = parseInt(time.total)%60;
+			progressTotalTime.innerHTML = fillZero(time.totalMin, 2) + ":" + fillZero(time.totalSec, 2);
 		}
 	}
 
@@ -465,17 +477,19 @@
 
 				opt.controlEle.style.left = l + "px";
 				opt.valEle.style.width = l + "px";
-				scale = l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
+				progressScale = l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
 
 				if(opt.type === "volume"){
-					audio.volume = scale;
-					if(scale === 0){
+					audio.volume = progressScale;
+					if(progressScale === 0){
 						volumeIcon02.className = "abs volume-icon03";
 					}
 					else{
 						volumeIcon02.className = "abs volume-icon02";
 					}
 				}
+
+				progress.updateTime(time, progressScale);
 			}
 			function fnUp(){
 				this.onmousemove = null;
@@ -486,7 +500,7 @@
 				}
 
 				if(opt.type === "progress"){
-					time.cur = audio.currentTime = scale*time.total;
+					time.cur = audio.currentTime = progressScale*time.total;
 					play.continue(time.cur);
 				}
 			}
