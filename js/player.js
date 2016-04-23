@@ -54,7 +54,8 @@
 		randomMode = $("random-mode"),
 		listMode = $("list-mode"),
 		isPlay = false,
-		iSingle = iRandom = false;  // 默认列表循环
+		iSingle = false,
+		iRandom = false;  // 默认列表循环
 
 	// 歌词格式规则
 	var lrcBox = $("lrc-box"),
@@ -63,9 +64,12 @@
 		regTime = /\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
 		regMatchTime = /\d{2}:\d{2}/g, // 比较时间格式
 		regWord = /[^\[\d{2}:\d{2}.\d{2}\]]/g,// 歌词正则（结果为单个字或者空白）
-		lrcLrc = oldLrc = newLrc = null,
-		oldShowLrcArr = newShowLrcArr = [],   // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
-		repeatLrcTime = repeatLrcWord = [],  // 临时数组 
+		oldLrc = null,
+		newLrc = null,
+		oldShowLrcArr = [],
+		newShowLrcArr = [],   // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
+		repeatLrcTime = [],
+		repeatLrcWord = [],  // 临时数组 
 		lrcTime = [],   // 最后时间数组 存在着对象引用
 		lrcWord = [];  //  最后歌词数组
 
