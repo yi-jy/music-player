@@ -59,7 +59,7 @@
 
 	// 歌词格式规则
 	var lrcBox = $("lrc-box"),
-		lrcUl = lrcBox.getElementsByTagName("ul")[0],
+		lrcUl = element.byClass('.lrc-list', lrcBox)[0],
 		regClear = /\[\d{2}:\d{2}\.\d{0,2}\].+|\[\d{2}:\d{2}\.\d{0,2}\]/g,
 		regTime = /\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
 		regMatchTime = /\d{2}:\d{2}/g, // 比较时间格式
