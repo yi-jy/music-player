@@ -1,4 +1,4 @@
-﻿(function(){
+﻿;(function(){
 	//播放器主体
 	var audio = document.createElement("audio");
 
@@ -47,18 +47,18 @@
 		songItem = null;
 
 	// 播放与模式键
-	var playPrev = $("play-prev"),
-		playNext = $("play-next"),
-		playStatus = $("play-status"),
-		singleMode = $("single-mode"),
-		randomMode = $("random-mode"),
-		listMode = $("list-mode"),
+	var playPrev = element.byId("play-prev"),
+		playNext = element.byId("play-next"),
+		playStatus = element.byId("play-status"),
+		singleMode = element.byId("single-mode"),
+		randomMode = element.byId("random-mode"),
+		listMode = element.byId("list-mode"),
 		isPlay = false,
 		iSingle = false,
 		iRandom = false;  // 默认列表循环
 
 	// 歌词格式规则
-	var lrcBox = $("lrc-box"),
+	var lrcBox = element.byId("lrc-box"),
 		lrcUl = element.byClass('.lrc-list', lrcBox)[0],
 		regClear = /\[\d{2}:\d{2}\.\d{0,2}\].+|\[\d{2}:\d{2}\.\d{0,2}\]/g,
 		regTime = /\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
@@ -166,10 +166,10 @@
 				}
 
 				songItem[n].onmouseover = function() {
-					addClassN(this, "hoverLi");
+					element.addClass(this, "hoverLi");
 				}
 				songItem[n].onmouseout = function() {
-					removeClassN(this, "hoverLi");
+					element.removeClass(this, "hoverLi");
 				}
 
 				songItem[n].index = n;
@@ -222,10 +222,10 @@
 			lrcUl.innerHTML="";
 
 			for(var n = 0; n < songItem.length; n += 1){
-				removeClassN(songItem[n], "cur-song");
+				element.removeClass(songItem[n], "cur-song");
 			}
 
-			isPlay && addClassN(songItem[iNow], "cur-song");
+			isPlay && element.addClass(songItem[iNow], "cur-song");
 
 			ajaxFn({
 				url: "lrc/" + songData.info[iNow].brief + ".txt",
@@ -292,8 +292,8 @@
 			time.cur = audio.currentTime;
 			audio.pause();
 			clearInterval(timer.progress);
-			removeClassN(songItem[iNow], "cur-song");
-			addClassN(songItem[iNow], "cur-song-stop");
+			element.removeClass(songItem[iNow], "cur-song");
+			element.addClass(songItem[iNow], "cur-song-stop");
 		},
 		continue: function(continueTime) { // 重新给audio赋值src，会使continueTime = audio.currentTime=0;则歌曲从头播放
 			time.total = parseInt(audio.duration);
@@ -303,31 +303,31 @@
 			audio.play();
 			clearInterval(timer.progress);
 			timer.progress = setInterval(progress.update, 100);
-			removeClassN(songItem[iNow], "cur-song-stop");
-			addClassN(songItem[iNow],"cur-song");
+			element.removeClass(songItem[iNow], "cur-song-stop");
+			element.addClass(songItem[iNow],"cur-song");
 		},
 		mode: {
 			list: function() {
 				iSingle = iRandom = false;
-				addClassN(listMode, "cur-mode");
-				removeClassN(singleMode, "cur-mode");
-				removeClassN(randomMode, "cur-mode");
+				element.addClass(listMode, "cur-mode");
+				element.removeClass(singleMode, "cur-mode");
+				element.removeClass(randomMode, "cur-mode");
 				audio.removeAttribute("loop");
 			},
 			random: function() {
 				iSingle = false;
 				iRandom = true;
-				addClassN(randomMode, "cur-mode");
-				removeClassN(singleMode, "cur-mode");
-				removeClassN(listMode, "cur-mode");
+				element.addClass(randomMode, "cur-mode");
+				element.removeClass(singleMode, "cur-mode");
+				element.removeClass(listMode, "cur-mode");
 				audio.removeAttribute("loop");
 			},
 			single: function() {
 				iSingle = true;
 				iRandom = false;
-				addClassN(singleMode, "cur-mode");
-				removeClassN(randomMode, "cur-mode");
-				removeClassN(listMode, "cur-mode");
+				element.addClass(singleMode, "cur-mode");
+				element.removeClass(randomMode, "cur-mode");
+				element.removeClass(listMode, "cur-mode");
 				audio.setAttribute("loop", "loop");
 			}
 		}
@@ -471,24 +471,23 @@
 			}
 			function fnMove(ev){
 				var oEvent = ev || event,
-					l = oEvent.clientX - disX;
+					moveDisX = oEvent.clientX - disX;
 
-				if(l >= opt.barEle.offsetWidth - opt.controlEle.offsetWidth){
-					l = opt.barEle.offsetWidth-opt.controlEle.offsetWidth;
+				if(moveDisX >= opt.barEle.offsetWidth - opt.controlEle.offsetWidth){
+					moveDisX = opt.barEle.offsetWidth-opt.controlEle.offsetWidth;
 				}else if(oEvent.clientX - disX < 0){
-					l = 0;
+					moveDisX = 0;
 				}
 
-				opt.controlEle.style.left = l + "px";
-				opt.valEle.style.width = l + "px";
-				progressScale = l / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
+				opt.controlEle.style.left = moveDisX + "px";
+				opt.valEle.style.width = moveDisX + "px";
+				progressScale = moveDisX / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
 
 				if(opt.type === "volume"){
 					audio.volume = progressScale;
 					if(progressScale === 0){
 						volumeIcon02.className = "abs volume-icon03";
-					}
-					else{
+					}else{
 						volumeIcon02.className = "abs volume-icon02";
 					}
 				}
@@ -512,75 +511,26 @@
 		}
 	}
 
-	function $(id){
-		return document.getElementById(id);
-	}
-
-	function addEvent(obj,sEvent,fn){
-		if(obj.attachEvent){
-			obj.attachEvent("on"+sEvent,fn);
-		}
-		else{
-			obj.addEventListener(sEvent,fn,false);
-		}
-	}
-
-	function addClassN(obj,sClass){
-	   if(obj.className){
-			var aClass=obj.className.split(" "),bAdd=true;
-			for(var i=0,len=aClass.length;i<len;i++){
-				if(aClass[i]===sClass){
-					bAdd=false;
-					break;
-				}
-			}
-			if(bAdd){
-				obj.className+=" "+sClass;
-			}
-		}
-		else{
-			obj.className=sClass;
-		}
-	}
-
-	function removeClassN(obj,sClass){
-		if(obj.className){
-			var aClass=obj.className.split(" ");
-			for(var i=0,len=aClass.length;i<len;i++){
-				if(aClass[i]==sClass){
-					aClass.splice(i,1);
-					obj.className=aClass.join(" ");
-					return;
-				}
-			}
-		}
-	}
-
-	function fillZero(str,n){
-		var str=str+"";
-		while(str.length<n){
-			str="0"+str;
+	function fillZero(str, n) {
+		var str = str + '';
+		while(str.length < n){
+			str = '0' + str;
 		}
 		return str;
 	}
 
-	function move(obj,iTarget){
+	function move(obj, iTarget){
 		clearInterval(obj.moveTimer);
-		obj.moveTimer=setInterval(function(){
-			var iSpeed=(iTarget-obj.scrollTop)/8;
-			iSpeed=iSpeed>0?Math.ceil(iSpeed):Math.floor(iSpeed);
-			if(obj.scrollTop==iTarget){
+		obj.moveTimer = setInterval( function() {
+			var iSpeed = (iTarget-obj.scrollTop)/8;
+			iSpeed = iSpeed > 0 ? Math.ceil(iSpeed) : Math.floor(iSpeed);
+			if(obj.scrollTop === iTarget){
 				clearInterval(obj.moveTimer);
+			}else{
+				obj.scrollTop += iSpeed;
 			}
-			else{
-				obj.scrollTop+=iSpeed;
-			}
-		},30);
+		}, 30);
 	}
-
-	// 初始化
-	song.list();
-	song.change(0);
 
 	// 进度条拖动
 	drag({
@@ -599,17 +549,21 @@
 	});
 
 	// 列表展开与折叠
-	addEvent(listBtn, "click", song.listSwitch);
+	eventUtil.addHandler(listBtn, "click", song.listSwitch);
 
 	// 播放、暂停，上一曲、下一曲
-	addEvent(playStatus, "click", play.status);
-	addEvent(playPrev, "click", play.prev);
-	addEvent(playNext, "click", play.next);
+	eventUtil.addHandler(playStatus, "click", play.status);
+	eventUtil.addHandler(playPrev, "click", play.prev);
+	eventUtil.addHandler(playNext, "click", play.next);
 
 	// 播放模式
-	addEvent(listMode, "click", play.mode.list);
-	addEvent(randomMode, "click", play.mode.random);
-	addEvent(singleMode, "click", play.mode.single);
+	eventUtil.addHandler(listMode, "click", play.mode.list);
+	eventUtil.addHandler(randomMode, "click", play.mode.random);
+	eventUtil.addHandler(singleMode, "click", play.mode.single);
+
+	// 初始化
+	song.list();
+	song.change(0);
 
 })()
 //  1 歌曲时间
