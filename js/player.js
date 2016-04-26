@@ -54,8 +54,8 @@
 		randomMode = element.byId("random-mode"),
 		listMode = element.byId("list-mode"),
 		isPlay = false,
-		iSingle = false,
-		iRandom = false;  // 默认列表循环
+		isSingle = false,
+		isRandom = false;
 
 	// 歌词格式规则
 	var lrcBox = element.byId("lrc-box"),
@@ -64,13 +64,7 @@
 		regTime = /\[\d{2}:\d{2}\.\d{0,2}\]/g,// 时间正则（结果[00:00.00]）
 		regMatchTime = /\d{2}:\d{2}/g, // 比较时间格式
 		regWord = /[^\[\d{2}:\d{2}.\d{2}\]]/g,// 歌词正则（结果为单个字或者空白）
-		oldLrc = null,
-		newLrc = null,
-		oldShowLrcArr = [],
-		newShowLrcArr = [],   // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
-		repeatLrcTime = [],
-		repeatLrcWord = [],  // 临时数组 
-		lrcTime = [],   // 最后时间数组 存在着对象引用
+		lrcTime = [],   // 最后时间数组
 		lrcWord = [];  //  最后歌词数组
 
 	// 可播放歌曲
@@ -258,7 +252,7 @@
 			}
 		},
 		prev: function() { // 上一曲
-			if(iRandom){
+			if(isRandom){
 				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
 			}
@@ -272,7 +266,7 @@
 			play.continue();
 		},
 		next: function() { // 下一曲
-			if(iRandom){
+			if(isRandom){
 				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
 			}
@@ -306,25 +300,25 @@
 			element.removeClass(songItem[iNow], "cur-song-stop");
 			element.addClass(songItem[iNow],"cur-song");
 		},
-		mode: {
+		mode: { // 默认列表循环
 			list: function() {
-				iSingle = iRandom = false;
+				isSingle = isRandom = false;
 				element.addClass(listMode, "cur-mode");
 				element.removeClass(singleMode, "cur-mode");
 				element.removeClass(randomMode, "cur-mode");
 				audio.removeAttribute("loop");
 			},
 			random: function() {
-				iSingle = false;
-				iRandom = true;
+				isSingle = false;
+				isRandom = true;
 				element.addClass(randomMode, "cur-mode");
 				element.removeClass(singleMode, "cur-mode");
 				element.removeClass(listMode, "cur-mode");
 				audio.removeAttribute("loop");
 			},
 			single: function() {
-				iSingle = true;
-				iRandom = false;
+				isSingle = true;
+				isRandom = false;
 				element.addClass(singleMode, "cur-mode");
 				element.removeClass(randomMode, "cur-mode");
 				element.removeClass(listMode, "cur-mode");
@@ -340,6 +334,7 @@
 			time.cur = parseInt(audio.currentTime);
 
 			if(!time.total){
+				progressCurTime.innerHTML = '00:00';
 				progressTotalTime.innerHTML = '00:00';
 				return;
 			}
@@ -352,10 +347,10 @@
 			if(progressCurTime.innerHTML === progressTotalTime.innerHTML && progressCurTime.innerHTML !== "00:00"){
 				clearInterval(timer.progress);
 				// 检测当前播放模式
-				if(iSingle){
+				if(isSingle){
 					clearTimeout(timer.playNext);
 					play.continue();
-				}else if(iRandom){
+				}else if(isRandom){
 					clearTimeout(timer.playNext);
 					iNow = parseInt(Math.random()*songData.total);
 					song.change(iNow);
@@ -396,31 +391,34 @@
 
 	var lrc = {
 		get: function(songLrc) { // 处理歌词，得到歌词数组
-			oldLrc=songLrc.replace(/^\s+|\s+$/g,""); // ajax lrc返回的歌词，对该字符串首尾删除空白
-			newLrc=oldLrc.match(regClear);  //清除无时间标示的信息，只剩[00:00.00]xxx 的形式。 每行都有时间（可能多个时间）对应歌词
-			oldShowLrcArr=[];  //每次切歌，将旧时间歌词数组清空。
-			for(var i=0;i<newLrc.length;i++){
-				repeatLrcTime=newLrc[i].match(regTime); //得到数组项的时间
-				repeatLrcWord=newLrc[i].match(regWord); //得到数组项的歌词
-				if(repeatLrcTime.length==1){
+			var oldLrc = songLrc.replace(/^\s+|\s+$/g, ''); // ajax lrc返回的歌词，对该字符串首尾删除空白
+				oldShowLrcArr = [], //每次切歌，将旧时间歌词数组清空
+				newShowLrcArr = [], // 新生成的数组（因有多个时间对于一句歌词，故需要重新生成歌词数组）
+				repeatLrcTime = [],
+				repeatLrcWord = [],  // 临时数组
+				newLrc = oldLrc.match(regClear);  //清除无时间标示的信息，只剩[00:00.00]xxx 的形式。 每行都有时间（可能多个时间）对应歌词
+			for(var i = 0; i < newLrc.length; i++){
+				repeatLrcTime = newLrc[i].match(regTime); //得到数组项的时间
+				repeatLrcWord = newLrc[i].match(regWord); //得到数组项的歌词
+				if(repeatLrcTime.length === 1){
 					if(!repeatLrcWord){  //如果该行歌词为空，则不能使用join. 把改行歌词设为 &nbsp;
 						repeatLrcWord=["&nbsp;"];
 					}
-					oldShowLrcArr.push(repeatLrcTime[0]+"-"+repeatLrcWord.join(""));
+					oldShowLrcArr.push(repeatLrcTime[0] + "-" + repeatLrcWord.join(""));
 				}
-				else if(repeatLrcTime.length>1){  //副歌部分，多个时间对于一行歌词
-					for(var r=0;r<repeatLrcTime.length;r++){
-						oldShowLrcArr.push(repeatLrcTime[r]+"-"+repeatLrcWord.join(""));
+				else if(repeatLrcTime.length > 1){  //副歌部分，多个时间对于一行歌词
+					for(var t = 0; t < repeatLrcTime.length; t++){
+						oldShowLrcArr.push(repeatLrcTime[t] + "-" + repeatLrcWord.join(""));
 					}
 				}
 			}
-			newShowLrcArr=oldShowLrcArr.sort();
+			newShowLrcArr = oldShowLrcArr.sort();
 
 			//获取最后时间数组和歌词数组，一一对应
 			function getLrcTimeWord(){
-				lrcTime=[];  //每次切歌，将旧时间歌词数组清空。
-				lrcWord=[];
-				for(var show=0;show<newShowLrcArr.length;show++){
+				lrcTime = [];  //每次切歌，将旧时间歌词数组清空。
+				lrcWord = [];
+				for(var show = 0; show < newShowLrcArr.length; show++){
 					lrcTime.push(newShowLrcArr[show].match(regMatchTime)[0]);
 					lrcWord.push(newShowLrcArr[show].split("-")[1]);
 				}
@@ -428,27 +426,27 @@
 			getLrcTimeWord();
 		},
 		show: function() { // 显示歌词
-			var oFragment=document.createDocumentFragment();
-			for(var w=0;w<lrcWord.length;w++){ 
-				var oLi=document.createElement("li");
-				oLi.innerHTML=lrcWord[w];
-				oFragment.appendChild(oLi);
+			var oFragment = document.createDocumentFragment();
+			for(var i = 0; i < lrcWord.length; i++){
+				var lrcItem = document.createElement("li");
+				lrcItem.innerHTML = lrcWord[i];
+				oFragment.appendChild(lrcItem);
 			}
 			lrcUl.appendChild(oFragment);
 		},
 		scroll: function() { // 歌词滚动
-			if(progressCurTime.innerHTML=="00:00"){
-				move(lrcBox,0);   // 单曲播放，或者起始播放。歌词返回顶部
+			if(progressCurTime.innerHTML === '00:00'){
+				move(lrcBox, 0);   // 单曲播放，或者起始播放。歌词返回顶部
 			}
-			for(var t=0;t<lrcTime.length;t++){
-				if(lrcTime[t]==progressCurTime.innerHTML){
-					var aLrcShowLi=lrcUl.getElementsByTagName("li");
-					for(var w=0;w<aLrcShowLi.length;w++){
-						aLrcShowLi[w].className="";
-						aLrcShowLi[t].className="curLrc";
+			for(var t = 0; t < lrcTime.length; t++){
+				if(lrcTime[t] === progressCurTime.innerHTML){
+					var aLrcShowLi = lrcUl.getElementsByTagName("li");
+					for(var l = 0; l < aLrcShowLi.length; l++){
+						aLrcShowLi[l].className = '';
+						aLrcShowLi[t].className = 'curLrc';
 					}
-					if(t>3){ // 如果大于第三行，则开始滚动	
-						move(lrcBox,aLrcShowLi[t].offsetTop-80); // aLrcLi[t].offsetTop-lrcBox.scrollTop=4*20; 当前歌词与顶部固定位置80px
+					if(t > 3){ // 如果大于第三行，则开始滚动
+						move(lrcBox,aLrcShowLi[t].offsetTop - 80); // aLrcLi[t].offsetTop-lrcBox.scrollTop=4*20; 当前歌词与顶部固定位置80px
 					}
 				}
 			}
