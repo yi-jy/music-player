@@ -205,24 +205,26 @@
 			}
 		},
 		change: function(iNow) {  // 切歌
-			songPic.setAttribute("src","images/"+ songData.info[iNow].brief + ".jpg");
-			audio.setAttribute("src","music/"+ songData.info[iNow].brief + ".mp3");
-			songName.innerHTML= songData.info[iNow].name;
-			songer.innerHTML= songData.info[iNow].songer;
-			album.innerHTML="《" + songData.info[iNow].album + "》";
-			progressIcon.style.left=progressVal.style.width=time.curMin = time.curSec =0; //换歌清0
-			progressCurTime.innerHTML=progressTotalTime.innerHTML="00:00";
+			songPic.setAttribute('src', 'images/' + songData.info[iNow].brief + '.jpg');
+			audio.setAttribute('src', 'music/' + songData.info[iNow].brief + '.mp3');
+			songName.innerHTML = songData.info[iNow].name;
+			songer.innerHTML = songData.info[iNow].songer;
+			album.innerHTML = '《' + songData.info[iNow].album + '》';
 
-			lrcUl.innerHTML="";
+			// 进度条、时间、歌词都重置
+			progressIcon.style.left = progressVal.style.width = time.curMin = time.curSec = 0;
+			progressCurTime.innerHTML = progressTotalTime.innerHTML = '00:00';
+
+			lrcUl.innerHTML = '';
 
 			for(var n = 0; n < songItem.length; n += 1){
-				element.removeClass(songItem[n], "cur-song");
+				element.removeClass(songItem[n], 'cur-song');
 			}
 
-			isPlay && element.addClass(songItem[iNow], "cur-song");
+			isPlay && element.addClass(songItem[iNow], 'cur-song');
 
 			ajaxFn({
-				url: "lrc/" + songData.info[iNow].brief + ".txt",
+				url: 'lrc/' + songData.info[iNow].brief + '.txt',
 				callback: function(data) {
 		            lrc.get(data);  //处理获取的歌词
 				    lrc.show();
@@ -237,7 +239,7 @@
 			}
 
 			document.title= songData.info[iNow].name;
-			document.body.style["background-image"] = "url('images/" + songData.info[iNow].brief + ".jpg')";
+			document.body.style['background-image'] = 'url("images/' + songData.info[iNow].brief + '.jpg")';
 		}
 	}
 
