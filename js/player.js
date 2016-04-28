@@ -1,4 +1,4 @@
-﻿;(function(){
+;(function(){
 	//播放器主体
 	var audio = document.createElement("audio");
 
@@ -50,9 +50,10 @@
 	var playPrev = element.byId("play-prev"),
 		playNext = element.byId("play-next"),
 		playStatus = element.byId("play-status"),
-		singleMode = element.byId("single-mode"),
-		randomMode = element.byId("random-mode"),
-		listMode = element.byId("list-mode"),
+		playMode = element.byId("play-mode"),
+		modeSingle = element.byId("mode-single"),
+		modeRandom = element.byId("mode-random"),
+		modeList = element.byId("mode-list"),
 		isPlay = false,
 		isSingle = false,
 		isRandom = false;
@@ -244,7 +245,8 @@
 	}
 
 	var play = {
-		status: function() { // 暂停或播放
+		// 暂停或播放
+		status: function() {
 			if(playStatus.className === "status status-stop"){
 				play.continue();
 				isPlay = true;
@@ -253,7 +255,8 @@
 				isPlay = false;
 			}
 		},
-		prev: function() { // 上一曲
+		// 上一曲
+		prev: function() {
 			if(isRandom){
 				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
@@ -267,7 +270,8 @@
 			song.change(iNow);
 			play.continue();
 		},
-		next: function() { // 下一曲
+		// 下一曲
+		next: function() {
 			if(isRandom){
 				clearTimeout(timer.playNext);
 				iNow = parseInt(Math.random()*songData.total);
@@ -281,7 +285,8 @@
 			song.change(iNow);
 			play.continue();
 		},
-		pause: function() { // 暂停播放
+		// 暂停播放
+		pause: function() {
 			playStatus.className = "status status-stop";
 			songPic.className = "rorate-pic rorate-pic-stop";
 			time.total = parseInt(audio.duration);
@@ -291,7 +296,8 @@
 			element.removeClass(songItem[iNow], "cur-song");
 			element.addClass(songItem[iNow], "cur-song-stop");
 		},
-		continue: function(continueTime) { // 重新给audio赋值src，会使continueTime = audio.currentTime=0;则歌曲从头播放
+		// 重新给audio赋值src，会使continueTime = audio.currentTime=0;则歌曲从头播放
+		continue: function(continueTime) {
 			time.total = parseInt(audio.duration);
 			playStatus.className = "status status-play";
 			songPic.className = "rorate-pic";
@@ -302,29 +308,46 @@
 			element.removeClass(songItem[iNow], "cur-song-stop");
 			element.addClass(songItem[iNow],"cur-song");
 		},
-		mode: { // 默认列表循环
-			list: function() {
-				isSingle = isRandom = false;
-				element.addClass(listMode, "cur-mode");
-				element.removeClass(singleMode, "cur-mode");
-				element.removeClass(randomMode, "cur-mode");
-				audio.removeAttribute("loop");
+		// 播放模式
+		mode: {
+			switch: function(){
+				var nowPlayMode = playMode.getAttribute('data-mode');
+				if(nowPlayMode === 'list'){
+					play.mode.change({
+						type: 'random',
+						playModeRemoveClass: 'play-mode-list',
+						playModeAddClass: 'play-mode-random',
+						isSingle: false,
+						isRandom: true,
+						loop: false
+					})
+				}else if(nowPlayMode === 'random'){
+					play.mode.change({
+						type: 'single',
+						playModeRemoveClass: 'play-mode-random',
+						playModeAddClass: 'play-mode-single',
+						isSingle: true,
+						isRandom: false,
+						loop: true
+					})
+				}else{
+					play.mode.change({
+						type: 'list',
+						playModeRemoveClass: 'play-mode-single',
+						playModeAddClass: 'play-mode-list',
+						isSingle: false,
+						isRandom: false,
+						loop: false
+					})
+				}
 			},
-			random: function() {
-				isSingle = false;
-				isRandom = true;
-				element.addClass(randomMode, "cur-mode");
-				element.removeClass(singleMode, "cur-mode");
-				element.removeClass(listMode, "cur-mode");
-				audio.removeAttribute("loop");
-			},
-			single: function() {
-				isSingle = true;
-				isRandom = false;
-				element.addClass(singleMode, "cur-mode");
-				element.removeClass(randomMode, "cur-mode");
-				element.removeClass(listMode, "cur-mode");
-				audio.setAttribute("loop", "loop");
+			change: function(opt){
+				playMode.setAttribute('data-mode', opt.type);
+				element.removeClass(playMode, opt.playModeRemoveClass);
+				element.addClass(playMode, opt.playModeAddClass);
+				isSingle = opt.isSingle;
+				isRandom = opt.isRandom;
+				opt.loop ? audio.setAttribute('loop', 'loop') : audio.removeAttribute('loop');
 			}
 		}
 	}
@@ -350,13 +373,15 @@
 				clearInterval(timer.progress);
 				// 检测当前播放模式
 				if(isSingle){
-					clearTimeout(timer.playNext);
-					play.continue();
+					timer.playNext = setTimeout(function(){
+						play.continue();
+					}, 1000);
 				}else if(isRandom){
-					clearTimeout(timer.playNext);
-					iNow = parseInt(Math.random()*songData.total);
-					song.change(iNow);
-					play.continue();
+					timer.playNext = setTimeout(function(){
+						iNow = parseInt(Math.random()*songData.total);
+						song.change(iNow);
+						play.continue();
+					}, 1000);
 				}else{
 					timer.playNext = setTimeout(function(){
 						iNow++;
@@ -379,14 +404,14 @@
 			if(time.curMin < 1){
 				time.curMin = 0;
 			}
-			progressCurTime.innerHTML=fillZero(time.curMin, 2) + ":" + fillZero(time.curSec, 2);
+			progressCurTime.innerHTML = fillZero(time.curMin, 2) + ":" + fillZero(time.curSec, 2);
 
 			if(time.curSec > 0){
 				return;
 			}
 
 			time.totalMin = parseInt(time.total/60);
-			time.totalSec = parseInt(time.total)%60;
+			time.totalSec = parseInt(time.total%60);
 			progressTotalTime.innerHTML = fillZero(time.totalMin, 2) + ":" + fillZero(time.totalSec, 2);
 		}
 	}
@@ -552,14 +577,12 @@
 	eventUtil.addHandler(listBtn, "click", song.listSwitch);
 
 	// 播放、暂停，上一曲、下一曲
-	eventUtil.addHandler(playStatus, "click", play.status);
-	eventUtil.addHandler(playPrev, "click", play.prev);
-	eventUtil.addHandler(playNext, "click", play.next);
+	eventUtil.addHandler(playStatus, 'click', play.status);
+	eventUtil.addHandler(playPrev, 'click', play.prev);
+	eventUtil.addHandler(playNext, 'click', play.next);
 
 	// 播放模式
-	eventUtil.addHandler(listMode, "click", play.mode.list);
-	eventUtil.addHandler(randomMode, "click", play.mode.random);
-	eventUtil.addHandler(singleMode, "click", play.mode.single);
+	eventUtil.addHandler(playMode, 'click', play.mode.switch);
 
 	// 初始化
 	song.list();
