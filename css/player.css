@@ -1,4 +1,4 @@
-﻿html,body,ul,p,h2,h3,audio{margin:0;padding:0;}
+html,body,ul,p,h2,h3,audio{margin:0;padding:0;}
 html{-webkit-text-size-adjust:none;}
 a{text-decoration:none;color:#666;}
 li{list-style:none;}
@@ -38,7 +38,7 @@ html,body{width:100%;height:100%;overflow:hidden;color:#fff;font:12px/20px "Helv
 
 /***歌曲列表***/
 .list-btn{position:absolute;right:0;top:8px;width:18px;height:30px;border-top-left-radius:3px;border-bottom-left-radius:3px;font:bold 16px/30px "Mircrosoft Yahei";text-align:center;background:#ccc;z-index:1000;}
-.song-box{position: absolute;top:0;width:100%;border:1px solid #aaa;color:#666;transition:0.5s left;-webkit-transition:0.5s left;z-index:10;-moz-user-select:none;}
+.song-box{position: absolute;top:0;width:100%;border:1px solid #aaa;color:#666;transition:0.5s left;-webkit-transition:0.5s left;z-index:1000;-moz-user-select:none;}
 .song-box-unfold{left:0;}
 .song-box-fold{left:100%;}
 .song-box .close-list{top:5px;right:8px;}
@@ -55,24 +55,26 @@ html,body{width:100%;height:100%;overflow:hidden;color:#fff;font:12px/20px "Helv
 .list-bd .hoverLi{color:#fff;background:#99c;}
 
 /***歌词***/
-.lrc{position: absolute;left:0;bottom:150px;width:100%;text-align:center;z-index:10;}
+.lrc{position: absolute;left:0;bottom:130px;width:100%;text-align:center;z-index:10;}
 .lrc-box{width:110%;height:230px;overflow-y:auto;color:#aaa;font-size:14px;line-height:26px;}
 .lrc-box .lrc-list{margin-right:5%;}
 .lrc-box .lrc-list .curLrc{color:#fff;font-weight:bold;font-size:16px;}
 
 /***播放模式***/
-.play-mode{position: absolute;left:0;right:0;bottom:125px;text-align:center;}
-.play-mode a{display:inline-block;width:25px;height:10px;margin-right:15px;color:#888;cursor:pointer;}
-.play-mode a:hover,.play-mode .cur-mode{color:#fff;font-weight:bold;}
-.play-mode .mode-item{position:relative;}
+.play-mode{position: absolute;left:10px;top:10px;text-align:center;}
+.play-mode .mode-item{position:relative;display:none;width:25px;height:25px;margin-right:15px;color:#fff;font-weight:bold;cursor:pointer;}
 .play-mode .mode-icon{position:absolute;}
-.single-mode01,.list-mode01{left:0;top:0;}
-.single-mode01,.list-mode02{left:0;top:10px;}
-.single-mode02{left:0;top:-1px;}
-.single-mode03{left:3px;top:7px;height:11px;overflow:hidden;}
-.random-mode01{left:-1px;top:6px;z-index:100;}
-.random-mode02{left:2px;top:1px;width:15px;overflow:hidden;}
-.random-mode03{left:2px;top:9px;width:15px;overflow:hidden;}
+.play-mode .mode-single01,.play-mode .mode-list01{left:0;top:0;}
+.play-mode .mode-single01,.play-mode .mode-list02{left:0;top:10px;}
+.play-mode .mode-single02{left:0;top:-1px;}
+.play-mode .mode-single03{left:3px;top:7px;height:11px;overflow:hidden;}
+.play-mode .mode-random01{left:-1px;top:6px;z-index:100;}
+.play-mode .mode-random02{left:2px;top:1px;width:15px;overflow:hidden;}
+.play-mode .mode-random03{left:2px;top:9px;width:15px;overflow:hidden;}
+
+.play-mode.play-mode-list .mode-list{display:inline-block;}
+.play-mode.play-mode-random .mode-random{display:inline-block;}
+.play-mode.play-mode-single .mode-single{display:inline-block;}
 
 /***进度条***/
 .player-progress{position:absolute;left:0;bottom:80px;width:100%;z-index:100;}
