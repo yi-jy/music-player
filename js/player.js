@@ -1,4 +1,4 @@
-﻿;(function(){
+;(function(){
 	//播放器主体
 	var audio = document.createElement("audio");
 
