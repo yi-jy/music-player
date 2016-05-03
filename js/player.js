@@ -481,59 +481,52 @@
 	}
 
 	function drag(opt){
-		opt.controlEle.onmousedown = function(ev){
+		var mPanBox = new Hammer(opt.controlEle);
+
+		mPanBox.startX = 0;
+		mPanBox.maxW = opt.barEle.offsetWidth - opt.controlEle.offsetWidth;
+
+		mPanBox.on("panstart", function(e) {
 			timer.progress && clearInterval(timer.progress);
 
-			var oEvent = ev || event,
-				disX = oEvent.clientX - opt.controlEle.offsetLeft - opt.controlEle.offsetWidth/2;
-			if(opt.controlEle.setCapture){
-				opt.controlEle.onmousemove = fnMove;
-				opt.controlEle.onmouseup = fnUp;
-				opt.controlEle.setCapture();
-			}else{
-				document.onmousemove = fnMove;
-				document.onmouseup = fnUp;
-			}
-			function fnMove(ev){
-				var oEvent = ev || event,
-					moveDisX = oEvent.clientX - disX;
+		    mPanBox.startX = opt.controlEle.offsetLeft;
 
-				if(moveDisX >= opt.barEle.offsetWidth - opt.controlEle.offsetWidth){
-					moveDisX = opt.barEle.offsetWidth-opt.controlEle.offsetWidth;
-				}else if(oEvent.clientX - disX < 0){
-					moveDisX = 0;
-				}
+		});
 
-				opt.controlEle.style.left = moveDisX + "px";
-				opt.valEle.style.width = moveDisX + "px";
-				progressScale = moveDisX / (opt.barEle.offsetWidth - opt.controlEle.offsetWidth);
+		mPanBox.on("panmove", function(e) {
+			var moveDisX = mPanBox.startX + e.deltaX;
 
-				if(opt.type === "volume"){
-					audio.volume = progressScale;
-					if(progressScale === 0){
-						volumeIcon02.className = "abs volume-icon03";
-					}else{
-						volumeIcon02.className = "abs volume-icon02";
-					}
-				}
+		    if(moveDisX < 0){
+		    	moveDisX = 0;
+		    }
+		    else if(moveDisX >= mPanBox.maxW){
+		    	moveDisX = mPanBox.maxW;
+		    }
 
-				progress.updateTime(time, progressScale);
-			}
-			function fnUp(){
-				this.onmousemove = null;
-				this.onmouseup = null;
+		    opt.controlEle.style.left = moveDisX + "px";
+		    opt.valEle.style.width = moveDisX + "px";
 
-				if(this.releaseCapture){
-					this.releaseCapture();
-				}
+		    progressScale = moveDisX / mPanBox.maxW;
 
-				if(opt.type === "progress"){
-					time.cur = audio.currentTime = progressScale*time.total;
-					play.continue(time.cur);
+		    if(opt.type === "volume"){
+				audio.volume = progressScale;
+				if(progressScale === 0){
+					volumeIcon02.className = "abs volume-icon03";
+				}else{
+					volumeIcon02.className = "abs volume-icon02";
 				}
 			}
-			return false;
-		}
+
+			progress.updateTime(time, progressScale);
+		});
+
+		mPanBox.on("panend", function(e) {
+			if(opt.type === "progress"){
+				time.cur = audio.currentTime = progressScale*time.total;
+				play.continue(time.cur);
+			}
+		});
+
 	}
 
 	function fillZero(str, n) {
