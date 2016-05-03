@@ -11,9 +11,9 @@
 
 <div class="mask"></div>
 
-<div class="music">
+<div class="music" onselectstart="return false;">
 
-    <div class="song-box song-box-fold" id="song-box" onselectstart="return false;">
+    <div class="song-box song-box-fold" id="song-box">
     	<div class="song-list">
         	<div class="list-hd">
             	<strong class="list-song-tracks">曲目</strong><strong class="list-song-name">歌曲名</strong><strong class="list-song-songer">歌手</strong>
@@ -72,7 +72,7 @@
                 <p class="song-album">专辑：<span class="album"></span></p>
             </div>
         </div>
-        <div class="play-bar"  onselectstart="return false;">
+        <div class="play-bar">
             <span class="prev" id="play-prev">
                 <b class="action-icon prev-icon"></b>
                 <i class="line"></i>
@@ -107,4 +107,5 @@
 </html>
 <script src="js/base.js"></script>
 <script src="js/ajax.js"></script>
-<script type="text/javascript" src="js/player.js"></script>
+<script src="js/hammer.min.js"></script>
+<script src="js/player.js"></script>
