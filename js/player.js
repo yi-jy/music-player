@@ -225,7 +225,7 @@
 			isPlay && element.addClass(songItem[iNow], 'cur-song');
 
 			ajaxFn({
-				url: 'lrc/' + songData.info[iNow].brief + '.txt',
+				url: 'lrc/' + songData.info[iNow].brief + '.lrc',
 				callback: function(data) {
 		            lrc.get(data);  //处理获取的歌词
 				    lrc.show();
