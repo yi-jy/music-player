@@ -68,73 +68,6 @@
 		lrcTime = [],   // 最后时间数组
 		lrcWord = [];  //  最后歌词数组
 
-	// 可播放歌曲
-	var songData = {
-		total: 10,
-		info: [
-			{
-				brief: 'nndj',
-				name: '难念的经',
-				songer: '周华健',
-				album: '天龙八部主题曲'
-			},
-			{
-				brief: 'wcyxazn',
-				name: '我曾用心爱着你',
-				songer: '葛泓语',
-				album: '中国好声音第二季'
-			},
-			{
-				brief: 'fk',
-				name: '浮夸',
-				songer: '陈奕迅',
-				album: 'U87'
-			},
-			{
-				brief: 'ywaq',
-				name: '因为爱情',
-				songer: '陈奕迅/王菲',
-				album: '因为爱情'
-			},
-			{
-				brief: 'sjdqnl',
-				name: '时间都去哪了',
-				songer: '王铮亮',
-				album: '2014春晚'
-			},
-			{
-				brief: 'axdyj',
-				name: '爱笑的眼睛',
-				songer: '徐若瑄',
-				album: '狠狠爱'
-			},
-			{
-				brief: 'yayng',
-				name: '越爱越难过',
-				songer: '吴克羣',
-				album: '为你写诗'
-			},
-			{
-				brief: 'gyy',
-				name: '过雨云',
-				songer: '张敬轩',
-				album: '过云雨'
-			},
-			{
-				brief: 'ts',
-				name: '她说',
-				songer: '林俊杰',
-				album: '她说'
-			},
-			{
-				brief: 'allmylife',
-				name: 'All My Life',
-				songer: 'Shayne Ward',
-				album: 'All My Life'
-			}
-		]
-	}
-
 	var song = {
 		list: function() { // 加载歌曲列表
 			var oFragment = document.createDocumentFragment();
@@ -577,9 +510,17 @@
 	// 播放模式
 	eventUtil.addHandler(playMode, 'click', play.mode.switch);
 
-	// 初始化
-	song.list();
-	song.change(0);
+	// 可播放歌曲
+	var songData;
+	ajaxFn({
+		url: 'js/song.json',
+		callback: function(data) {
+            songData = JSON.parse(data);
+            // 初始化
+			song.list();
+			song.change(0);
+        }
+	});
 
 })()
 //  1 歌曲时间
