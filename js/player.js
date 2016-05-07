@@ -1,4 +1,4 @@
-;(function(){
+﻿;(function(){
     //播放器主体
     var audio = document.createElement("audio");
 
@@ -511,7 +511,7 @@
         url: 'js/song.json',
         callback: function(data) {
             songData = JSON.parse(data);
-            // 初始化
+            // 初始化 
             song.list();
             song.change(0);
         }
@@ -524,7 +524,3 @@
 //  4 单曲循环，或者列表，随机循环
 //  5 歌曲列表
 //  6 歌词
-
-function sum() {
-	
-}
