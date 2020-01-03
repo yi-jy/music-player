@@ -20,6 +20,6 @@ music-player 是一个在audio基础上开发的音乐播放器。14年初写的
 - 列表滚动：由于歌曲列表可视歌曲最多六首，当歌曲多余六首，列表会出现滚动条。而该播放器可根据当前播放歌曲来滚动列表，保证当前播放歌曲在列表可见，类似歌词滚动。
 
 
-music-player演示：[点击查看](http://joy-yi0905.github.io/music-player/)
+music-player演示：[点击查看](http://yi-jy.github.io/music-player/)
 
-![扫描二维码](http://joy-yi0905.github.io/music-player/images/qr.png) 
+![扫描二维码](http://yi-jy.github.io/music-player/images/qr.png) 
