@@ -22,4 +22,5 @@ music-player 是一个在audio基础上开发的音乐播放器。14年初写的
 
 music-player演示：[点击查看](http://yi-jy.github.io/music-player/)
 
-![扫描二维码](http://yi-jy.github.io/music-player/images/qr.png) 
+![扫描二维码](http://yi-jy.github.io/music-player/images/qr-2020.png) 
+
